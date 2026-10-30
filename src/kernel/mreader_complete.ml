@@ -17,9 +17,16 @@ let rec print pieces = String.concat " " (List.map print_piece pieces)
 
 and print_piece = function
   | C.Symbol s ->
-    let n = String.length s in
-    if n > 2 && s.[0] = '\'' && s.[n - 1] = '\'' then String.sub s 1 (n - 2)
-    else s
+    (* The text of an annotation can quote the keywords and punctuations it
+       mentions too ([':' <type>]) *)
+    let unquote w =
+      let n = String.length w in
+      if n > 2 && w.[0] = '\'' && w.[n - 1] = '\'' then String.sub w 1 (n - 2)
+      else if n > 3 && w.[0] = '[' && w.[1] = '\'' && w.[n - 1] = '\'' then
+        "[" ^ String.sub w 2 (n - 3)
+      else w
+    in
+    String.concat " " (List.map unquote (String.split_on_char ' ' s))
   | C.Optional pieces ->
     let s = print pieces in
     let n = String.length s in
@@ -62,6 +69,57 @@ let rec cut own pieces =
     | Some own -> p :: cut own rest
     | None -> p :: cut own rest)
 
+(* The continuation from the keyword, whose text is [first]: the optional
+   pieces before it come from the other suggestions of the group (the [when]
+   of a case before its [->]), and an optional piece starting with it is
+   not optional, the keyword being there *)
+let rec from_keyword keyword first = function
+  | [] -> None
+  | C.Symbol x :: rest when x = first -> Some (C.Symbol keyword :: rest)
+  | C.Optional (C.Symbol x :: inner) :: rest when x = first ->
+    Some ((C.Symbol keyword :: inner) @ rest)
+  | C.Optional inner :: rest -> (
+    match from_keyword keyword first inner with
+    | Some pieces -> Some (pieces @ rest)
+    | None -> from_keyword keyword first rest)
+  | C.Symbol _ :: rest -> from_keyword keyword first rest
+
+(* The continuation up to a closing delimiter of a construct opened before
+   the keyword, [`Paren] for a parenthesis: [(module <module>)] *)
+let enclosed pieces =
+  let rec go depth acc = function
+    | [] -> (List.rev acc, `None)
+    | (C.Symbol ("'('" | "'['" | "'{'") as p) :: rest ->
+      go (depth + 1) (p :: acc) rest
+    | C.Symbol "')'" :: _ when depth = 0 -> (List.rev acc, `Paren)
+    | C.Symbol ("']'" | "'}'" | "'|]'") :: _ when depth = 0 ->
+      (List.rev acc, `Other)
+    | (C.Symbol ("')'" | "']'" | "'}'" | "'|]'") as p) :: rest ->
+      go (depth - 1) (p :: acc) rest
+    | p :: rest -> go depth (p :: acc) rest
+  in
+  match go 0 [] pieces with
+  (* The separator of a list the construct is in *)
+  | pieces, delimiter -> (
+    match List.rev pieces with
+    | (C.Optional [ C.Symbol ("';'" | "','") ] | C.Symbol ("[';']" | "[',']"))
+      :: rest -> (List.rev rest, delimiter)
+    | _ -> (pieces, delimiter))
+
+(* The descriptions of the suggestions that the annotations do not cover,
+   from the rule of the keyword and what follows it *)
+let special keyword s pieces =
+  match (List.map C.segment_rule (C.segments s), pieces) with
+  (* [true] and [false] are constructors: what follows them is the
+     construct they appear in (an application, a binding) *)
+  | rule :: _, _
+    when List.mem (C.symbol_name rule)
+           [ "constr_extra_nonprefix_ident"; "constr_extra_ident" ] ->
+    Some keyword
+  (* An operator between parentheses, as a value *)
+  | _, [ C.Symbol _; C.Symbol "')'" ] -> Some ("(" ^ keyword ^ ")")
+  | _ -> None
+
 (* The keywords that can come next, sorted by how soon they reconnect with
    the next tokens; each is described by the group of suggestions that
    reconnects soonest, then by the one with the shortest construct (a type
@@ -83,13 +141,14 @@ let keywords (Mreader_parser.Snapshot (env, suffix)) =
             let own = own_symbols s and distance = C.distance suffix s in
             Hashtbl.replace group keyword
               (match Hashtbl.find_opt group keyword with
-              | Some (d, own') ->
-                ( min d distance,
-                  if List.length own' >= List.length own then own' else own )
-              | None -> (distance, own)))
+              | Some (d, own', s') ->
+                if List.length own' >= List.length own then
+                  (min d distance, own', s')
+                else (min d distance, own, s)
+              | None -> (distance, own, s)))
         suggestions;
       Hashtbl.iter
-        (fun keyword (distance, own) ->
+        (fun keyword (distance, own, s) ->
           let key = (distance, List.length own) in
           match Hashtbl.find_opt best keyword with
           | Some (key', _) when key' <= key -> ()
@@ -97,10 +156,18 @@ let keywords (Mreader_parser.Snapshot (env, suffix)) =
             if previous = None then order := keyword :: !order;
             (* The keyword is printed as itself: an operator is a class of
                tokens *)
+            let pieces = cut own pieces in
             let desc =
-              match cut own pieces with
-              | C.Symbol _ :: rest -> print (C.Symbol keyword :: rest)
-              | pieces -> print pieces
+              match special keyword s pieces with
+              | Some desc -> desc
+              | None -> (
+                let pieces =
+                  Option.value ~default:pieces
+                    (from_keyword keyword (List.hd own) pieces)
+                in
+                match enclosed pieces with
+                | pieces, `Paren -> "(" ^ print pieces ^ ")"
+                | pieces, (`Other | `None) -> print pieces)
             in
             Hashtbl.replace best keyword (key, desc))
         group)

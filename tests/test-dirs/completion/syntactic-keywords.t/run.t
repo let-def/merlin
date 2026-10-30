@@ -10,7 +10,7 @@ At the start of an expression:
   > -kind k -prefix "" < test.ml | jq -r '.value.entries[] | select(.kind == "Keyword") | .name + ": " + .desc'
   function: function <cases>
   let: let [rec] <binding> in <expr>
-  fun: fun <params> [':' <type>] -> <expr>
+  fun: fun <params> [: <type>] -> <expr>
   match: match <expr> with <cases>
   try: try <expr> with <cases>
   if: if <expr> then <expr> [else <expr>]
@@ -21,8 +21,8 @@ At the start of an expression:
   begin: begin [<expr>] end
   new: new <class>
   object: object <class body> end
-  false: false <expr>
-  true: true <expr>
+  false: false
+  true: true
 
 In an expression, only the keywords that continue it:
 
@@ -65,6 +65,36 @@ In a signature:
   $ $MERLIN single complete-prefix -position 2:3 -filename test.ml \
   > -kind k -prefix v < test.ml | jq -r '.value.entries[] | select(.kind == "Keyword") | .name + ": " + .desc'
   val: val <ident> : <type>
+
+Constructors are not described by the construct they appear in, and the
+constructs between delimiters opened before the keyword are shown with them:
+
+  $ cat >test.ml <<'EOF'
+  > let x = (
+  > EOF
+  $ $MERLIN single complete-prefix -position 1:9 -filename test.ml \
+  > -kind k -prefix m < test.ml | jq -r '.value.entries[] | select(.kind == "Keyword") | .name + ": " + .desc'
+  match: match <expr> with <cases>
+  module: (module <module> [: <module type>])
+  mod: (mod)
+
+  $ cat >test.ml <<'EOF'
+  > let f = fun (t
+  > EOF
+  $ $MERLIN single complete-prefix -position 1:14 -filename test.ml \
+  > -kind k -prefix t < test.ml | jq -r '.value.entries[] | select(.kind == "Keyword") | .name + ": " + .desc'
+  type: (type <ident> ...)
+  true: true
+
+  $ cat >test.ml <<'EOF'
+  > let l = [ f
+  > EOF
+  $ $MERLIN single complete-prefix -position 1:11 -filename test.ml \
+  > -kind k -prefix f < test.ml | jq -r '.value.entries[] | select(.kind == "Keyword") | .name + ": " + .desc'
+  function: function <cases>
+  fun: fun <params> [: <type>] -> <expr>
+  for: for <pattern> = <expr> to <expr> do <expr> done
+  false: false
 
 The local bindings are kept when completing after a syntax error:
 

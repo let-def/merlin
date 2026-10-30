@@ -5813,3 +5813,121 @@ let trigram_keys = ""
 end
 
 include Lrgrep_completion.Make (Parser) (Tables)
+# 7 "parser_completion.annotations"
+  
+(* How the description of a keyword differs from its continuation *)
+type description =
+  | Alone
+      (** The keyword alone: [true] and [false] are constructors, what
+          follows them is the construct they appear in *)
+  | Enclosed of string * string
+      (** The construct of the keyword is between delimiters, the opening one
+          before the keyword: [(module <module>)], [(mod)] *)
+# 5827 "./parser_completion.ml"
+
+
+let symbol_value : symbol -> _ option = function
+  | N_constr_extra_nonprefix_ident -> Some (
+# 232 "parser_completion.annotations"
+                               Alone 
+# 5834 "./parser_completion.ml"
+
+  )
+  | _ -> None
+
+let segment_value : segment -> _ option = function
+  | S___anonymous_11_0_1
+  | S___anonymous_11_0_2
+  | S___anonymous_11_0_3
+  | S___anonymous_11_0_4
+  | S___anonymous_26_0_1
+  | S___anonymous_32_0_1
+  | S___anonymous_9_1_1
+  | S___anonymous_9_1_2
+  | S___anonymous_9_1_3
+  | S___anonymous_9_1_4
+  | S_actual_type_parameters_2_1
+  | S_actual_type_parameters_2_2
+  | S_class_self_pattern_0_1
+  | S_class_self_pattern_0_2
+  | S_class_self_type_0_1
+  | S_class_self_type_0_2
+  | S_class_simple_expr_0_1
+  | S_class_simple_expr_0_2
+  | S_constr_extra_ident_0_1
+  | S_constr_extra_ident_0_2
+  | S_constr_extra_nonprefix_ident_1_1
+  | S_delimited_type_supporting_local_open_0_1
+  | S_delimited_type_supporting_local_open_0_2
+  | S_delimited_type_supporting_local_open_1_1
+  | S_delimited_type_supporting_local_open_1_2
+  | S_delimited_type_supporting_local_open_1_3
+  | S_delimited_type_supporting_local_open_1_4
+  | S_fun_param_as_list_0_1
+  | S_fun_param_as_list_0_2
+  | S_fun_param_as_list_0_3
+  | S_functor_arg_0_1
+  | S_functor_arg_1_1
+  | S_functor_arg_1_2
+  | S_functor_arg_1_3
+  | S_functor_arg_1_4
+  | S_module_type_4_1
+  | S_module_type_4_2
+  | S_param_type_0_1
+  | S_param_type_0_2
+  | S_paren_module_expr_0_1
+  | S_paren_module_expr_0_2
+  | S_paren_module_expr_0_3
+  | S_paren_module_expr_0_4
+  | S_paren_module_expr_1_1
+  | S_paren_module_expr_1_2
+  | S_paren_module_expr_2_1
+  | S_paren_module_expr_2_2
+  | S_paren_module_expr_2_3
+  | S_paren_module_expr_2_4
+  | S_simple_expr_0_1
+  | S_simple_expr_0_2
+  | S_simple_expr_1_1
+  | S_simple_expr_1_2
+  | S_simple_expr_1_3
+  | S_simple_expr_attrs_3_1
+  | S_simple_expr_attrs_3_2
+  | S_simple_expr_attrs_3_3
+  | S_simple_expr_attrs_3_4
+  | S_simple_expr_attrs_4_1
+  | S_simple_expr_attrs_4_2
+  | S_simple_expr_attrs_4_3
+  | S_simple_expr_attrs_4_4
+  | S_simple_expr_attrs_4_5
+  | S_simple_expr_attrs_4_6
+  | S_simple_param_pattern_9_1
+  | S_simple_param_pattern_9_2
+  | S_simple_pattern_not_ident_0_1
+  | S_simple_pattern_not_ident_0_2
+  | S_simple_pattern_not_ident_2_1
+  | S_simple_pattern_not_ident_2_2
+  | S_simple_pattern_not_ident_2_3
+  | S_simple_pattern_not_ident_2_4
+  | S_simple_pattern_not_ident_3_1
+  | S_simple_pattern_not_ident_3_2
+  | S_simple_pattern_not_ident_3_3
+  | S_simple_pattern_not_ident_3_4
+  | S_simple_pattern_not_ident_3_5
+  | S_simple_pattern_not_ident_3_6
+  | S_simple_pattern_not_ident__10_1
+  | S_simple_pattern_not_ident__10_2
+  | S_simple_pattern_not_ident__10_3
+  | S_simple_pattern_not_ident__10_4
+  | S_type_parameters_2_1
+  | S_type_parameters_2_2
+  | S_val_extra_ident_0_1
+  | S_val_extra_ident_0_2 -> Some (
+# 233 "parser_completion.annotations"
+                    Enclosed ("(", ")") 
+# 5928 "./parser_completion.ml"
+
+  )
+  | _ -> None
+
+(* The values of the symbols and of the segments have the same type *)
+let _ = fun s g -> [symbol_value s; segment_value g]

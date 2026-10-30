@@ -2,7 +2,7 @@
 # completion -a): `symbol: directives`, with `omit` (leave out of the
 # suggestions) or "text" (how to print it), and the values that direct the
 # descriptions of the keywords in Mreader_complete: `symbol { value }` and
-# `rule: producers . producers { value }` for the segments from the dot.
+# `. producers { value }` for the segments (the rests of the branches).
 
 %{
 (* How the description of a keyword differs from its continuation *)
@@ -230,4 +230,8 @@ METAOCAML_BRACKET_CLOSE: "'>.'"
 
 # The descriptions of the keywords
 constr_extra_nonprefix_ident { Alone }
-_: LPAREN _* . _* { Enclosed ("(", ")") }
+# The segments that close a parenthesis opened before them
+. MODULE _* RPAREN { Enclosed ("(", ")") }
+. VAL _* RPAREN { Enclosed ("(", ")") }
+. TYPE lident_list RPAREN _* { Enclosed ("(", ")") }
+. RPAREN { Enclosed ("(", ")") }

@@ -5836,95 +5836,80 @@ let symbol_value : symbol -> _ option = function
   | _ -> None
 
 let segment_value : segment -> _ option = function
-  | S___anonymous_11_0_1
-  | S___anonymous_11_0_2
-  | S___anonymous_11_0_3
+  | S___anonymous_0_2_2
   | S___anonymous_11_0_4
   | S___anonymous_26_0_1
   | S___anonymous_32_0_1
-  | S___anonymous_9_1_1
-  | S___anonymous_9_1_2
-  | S___anonymous_9_1_3
   | S___anonymous_9_1_4
-  | S_actual_type_parameters_2_1
   | S_actual_type_parameters_2_2
-  | S_class_self_pattern_0_1
   | S_class_self_pattern_0_2
-  | S_class_self_type_0_1
   | S_class_self_type_0_2
-  | S_class_simple_expr_0_1
   | S_class_simple_expr_0_2
-  | S_constr_extra_ident_0_1
   | S_constr_extra_ident_0_2
   | S_constr_extra_nonprefix_ident_1_1
-  | S_delimited_type_supporting_local_open_0_1
   | S_delimited_type_supporting_local_open_0_2
-  | S_delimited_type_supporting_local_open_1_1
-  | S_delimited_type_supporting_local_open_1_2
-  | S_delimited_type_supporting_local_open_1_3
   | S_delimited_type_supporting_local_open_1_4
-  | S_fun_param_as_list_0_1
-  | S_fun_param_as_list_0_2
   | S_fun_param_as_list_0_3
   | S_functor_arg_0_1
-  | S_functor_arg_1_1
-  | S_functor_arg_1_2
-  | S_functor_arg_1_3
   | S_functor_arg_1_4
-  | S_module_type_4_1
+  | S_labeled_simple_expr_3_4
+  | S_labeled_tuple_element_3_4
+  | S_labeled_tuple_pat_element_pattern__3_5
+  | S_labeled_tuple_pat_element_pattern_no_exn__3_5
+  | S_labeled_tuple_pat_element_noprec_pattern__3_5
+  | S_labeled_tuple_pat_element_noprec_pattern_no_exn__3_5
+  | S_mod_ext_longident_1_3
   | S_module_type_4_2
-  | S_param_type_0_1
+  | S_operator_3_3
   | S_param_type_0_2
-  | S_paren_module_expr_0_1
-  | S_paren_module_expr_0_2
-  | S_paren_module_expr_0_3
   | S_paren_module_expr_0_4
-  | S_paren_module_expr_1_1
   | S_paren_module_expr_1_2
-  | S_paren_module_expr_2_1
-  | S_paren_module_expr_2_2
-  | S_paren_module_expr_2_3
   | S_paren_module_expr_2_4
-  | S_simple_expr_0_1
   | S_simple_expr_0_2
-  | S_simple_expr_1_1
-  | S_simple_expr_1_2
   | S_simple_expr_1_3
-  | S_simple_expr_attrs_3_1
-  | S_simple_expr_attrs_3_2
-  | S_simple_expr_attrs_3_3
+  | S_simple_expr__9_4
+  | S_simple_expr__25_8
   | S_simple_expr_attrs_3_4
-  | S_simple_expr_attrs_4_1
-  | S_simple_expr_attrs_4_2
-  | S_simple_expr_attrs_4_3
-  | S_simple_expr_attrs_4_4
-  | S_simple_expr_attrs_4_5
   | S_simple_expr_attrs_4_6
-  | S_simple_param_pattern_9_1
+  | S_simple_param_pattern_0_4
+  | S_simple_param_pattern_2_4
+  | S_simple_param_pattern_4_3
+  | S_simple_param_pattern_8_3
   | S_simple_param_pattern_9_2
-  | S_simple_pattern_not_ident_0_1
   | S_simple_pattern_not_ident_0_2
-  | S_simple_pattern_not_ident_2_1
-  | S_simple_pattern_not_ident_2_2
-  | S_simple_pattern_not_ident_2_3
   | S_simple_pattern_not_ident_2_4
-  | S_simple_pattern_not_ident_3_1
-  | S_simple_pattern_not_ident_3_2
-  | S_simple_pattern_not_ident_3_3
-  | S_simple_pattern_not_ident_3_4
-  | S_simple_pattern_not_ident_3_5
   | S_simple_pattern_not_ident_3_6
-  | S_simple_pattern_not_ident__10_1
-  | S_simple_pattern_not_ident__10_2
-  | S_simple_pattern_not_ident__10_3
+  | S_simple_pattern_not_ident__9_4
   | S_simple_pattern_not_ident__10_4
-  | S_type_parameters_2_1
   | S_type_parameters_2_2
-  | S_val_extra_ident_0_1
   | S_val_extra_ident_0_2 -> Some (
-# 233 "parser_completion.annotations"
-                    Enclosed ("(", ")") 
-# 5928 "./parser_completion.ml"
+# 237 "parser_completion.annotations"
+           Enclosed ("(", ")") 
+# 5889 "./parser_completion.ml"
+
+  )
+  | S___anonymous_29_1_2
+  | S_fun_param_as_list_0_1 -> Some (
+# 236 "parser_completion.annotations"
+                               Enclosed ("(", ")") 
+# 5896 "./parser_completion.ml"
+
+  )
+  | S_delimited_type_supporting_local_open_1_1
+  | S_simple_expr__25_3
+  | S_simple_expr_attrs_3_1
+  | S_simple_expr_attrs_4_1
+  | S_simple_pattern_not_ident_2_1
+  | S_simple_pattern_not_ident_3_1 -> Some (
+# 234 "parser_completion.annotations"
+                     Enclosed ("(", ")") 
+# 5907 "./parser_completion.ml"
+
+  )
+  | S_paren_module_expr_2_1 -> Some (
+# 235 "parser_completion.annotations"
+                  Enclosed ("(", ")") 
+# 5913 "./parser_completion.ml"
 
   )
   | _ -> None

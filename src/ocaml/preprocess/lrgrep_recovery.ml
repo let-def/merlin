@@ -513,10 +513,13 @@ module Make (P : PARSER) (T : TABLES with type 'a env := 'a P.MenhirInterpreter.
 
   (** Whether [env] accepts the tokens [i] to [i + k - 1] (fewer at the end
       of input). *)
-  let rec accepts env input i k =
-    k = 0 || not (has input i) ||
-    match offer env (token input i) with
-    | `Ok (I.InputNeeded env') -> accepts env' input (i + 1) (k - 1)
+  let rec accepts env (get : int -> token option) i k =
+    k = 0 ||
+    match get i with
+    | None -> true
+    | Some tok ->
+    match offer env tok with
+    | `Ok (I.InputNeeded env') -> accepts env' get (i + 1) (k - 1)
     | `Ok _ -> assert false
     | `Accept _ -> true
     | `Error _ -> false
@@ -617,10 +620,12 @@ module Make (P : PARSER) (T : TABLES with type 'a env := 'a P.MenhirInterpreter.
      [accepts] on the real stack, but without semantic actions (which can
      still fail): reading a token performs the default reductions, then
      looks up the action of the token *)
-  let sim_accepts states input j k =
-    let terminal i = let tok, _, _ = token input i in P.Tables.token2terminal tok in
+  let sim_accepts states (get : int -> token option) j k =
+    let terminal i = match get i with
+      | Some (tok, _, _) -> P.Tables.token2terminal tok
+      | None -> assert false in
     (* [shifted]: a token was shifted, accepting is accepting it *)
-    let rec read states j k shifted = k = 0 || not (has input j) || run states j k shifted
+    let rec read states j k shifted = k = 0 || get j = None || run states j k shifted
     and run states j k shifted =
       ET.default_reduction (List.hd states)
         (fun () prod -> reduce states prod j k shifted)
@@ -723,7 +728,7 @@ module Make (P : PARSER) (T : TABLES with type 'a env := 'a P.MenhirInterpreter.
     (i, if e <= s then i else max i (token_index input (e - 1)))
 
   (* The frames of [env], from the bottom *)
-  let frames input env = List.rev_map (frame input) (cells env)
+  let frame_tokens input env = List.rev_map (frame input) (cells env)
 
   (* The consistency of the frames with the spans. A frame violates the
      spans if a span closed before its start contains more than
@@ -785,45 +790,6 @@ module Make (P : PARSER) (T : TABLES with type 'a env := 'a P.MenhirInterpreter.
         if s < Vec.length sp.innermost then up (Vec.get sp.innermost s))
       root;
     (bad, min_bad)
-
-  (* Whether a candidate, whose frames are [cells], is consistent with the
-     spans at token [j]: the scan of the original frames it shares is
-     continued over the frames above them; the number of shared frames in
-     a span is found from their starts, which do not decrease *)
-  let consistent_cells ~slack input sp root (bad, min_bad) cells j =
-    let rec split above = function
-      | (_, _, k) :: _ when k > 0 -> above, k
-      | (s, e, _) :: rest -> split (frame input (s, e) :: above) rest
-      | [] -> above, 0
-    in
-    let above, l = split [] cells in
-    (* The first index of [root] below [l] starting at [x] or after *)
-    let lower x =
-      let lo = ref 0 and hi = ref l in
-      while !lo < !hi do
-        let mid = (!lo + !hi) / 2 in
-        if fst root.(mid) < x then lo := mid + 1 else hi := mid
-      done;
-      !lo
-    in
-    not bad.(l) &&
-    let min_bad = ref min_bad.(l) and local = Hashtbl.create 7 in
-    List.for_all (fun (s, e) ->
-        not (crosses sp s e) && !min_bad > s &&
-        begin
-          let rec up span =
-            if span >= 0 then begin
-              let shared = lower (Vec.get sp.finish span) - lower (Vec.get sp.start span) in
-              let c = 1 + Option.value (Hashtbl.find_opt local span) ~default:0 in
-              Hashtbl.replace local span c;
-              if shared + c > 1 + slack then min_bad := min !min_bad (Vec.get sp.finish span);
-              up (Vec.get sp.parent span)
-            end
-          in
-          if s < Vec.length sp.innermost then up (Vec.get sp.innermost s);
-          true
-        end)
-      (above @ [(j, j)])
 
   (** {1 The search} *)
 
@@ -1082,31 +1048,341 @@ module Make (P : PARSER) (T : TABLES with type 'a env := 'a P.MenhirInterpreter.
     in
     next, final
 
+  let feed_checkpoint = feed
+
+  (** {1 Policies} *)
+
+  (** A policy: a fold over the tokens given to a recovery, which tells, at
+      each token, the number of frames of the stack of the recovery, from
+      the bottom, that may still be open when this token is shifted. *)
+  type 's policy = {
+    state : 's;
+    feed : 's -> token -> 's * int;
+  }
+
+  (** A guide: the cut it advises at an error, and the policy of a recovery
+      from a stack. *)
+  type 's guide = {
+    cut : 'a. 'a I.env -> ('a I.env * Lexing.position) option;
+    start : 'a. 'a I.env -> 's policy;
+  }
+
+  (* The start and end positions of the frames of [env], from the bottom *)
+  let positions env =
+    let rec go env acc =
+      match I.top env with
+      | None -> acc
+      | Some (I.Element (_, _, s, e)) ->
+        let acc = (s, e) :: acc in
+        match I.pop env with None -> acc | Some env -> go env acc
+    in
+    Array.of_list (go env [])
+
+  let column (p : Lexing.position) = p.pos_cnum - p.pos_bol
+
+  (** {2 Frames} *)
+
+  (* The indentation of the frames, from the bottom: the column of a frame
+     that starts a line, the indentation of the frame below otherwise *)
+  let starts_line fr k =
+    k = 0 || (fst fr.(k)).Lexing.pos_lnum > (snd fr.(k - 1)).Lexing.pos_lnum
+
+  let indentations fr =
+    let ind = Array.make (Array.length fr) 0 in
+    Array.iteri (fun k (s, _) ->
+        ind.(k) <- if starts_line fr k then column s else ind.(k - 1))
+      fr;
+    ind
+
+  (* The frames, among the [n] first ones, that a line at column [t] closes:
+     the first frame of the first run of frames more indented than [t]
+     holding more than [1 + slack] of them ([n] for none). These frames
+     cannot stay open: the run should have been reduced. *)
+  let closing ~slack ind n t =
+    let result = ref n and run = ref 0 and k = ref 0 in
+    while !k < n && !result = n do
+      if ind.(!k) > t then begin
+        incr run;
+        if !run > 1 + slack then result := !k + 1 - !run
+      end else run := 0;
+      incr k
+    done;
+    !result
+
+  type frames = {
+    indent : int array;
+    slack : int;
+    last_line : int;
+    open_frames : int;
+  }
+
+  let frames ?(slack = 0) () = {
+    cut = (fun env ->
+        let fr = positions env in
+        let ind = indentations fr in
+        let n = Array.length fr in
+        let rec find k =
+          if k >= n then None
+          else if starts_line fr k && closing ~slack ind k (column (fst fr.(k))) < k
+          then Some k
+          else find (k + 1)
+        in
+        match find 1 with
+        | None -> None
+        | Some k -> Option.map (fun env' -> (env', fst fr.(k))) (I.pop_many (n - k) env));
+    start = (fun env ->
+        let fr = positions env in
+        let n = Array.length fr in
+        let last_line = if n = 0 then 0 else (snd fr.(n - 1)).pos_lnum in
+        {state = {indent = indentations fr; slack; last_line; open_frames = n};
+         feed = (fun st (_, s, e) ->
+             let open_frames =
+               if s.pos_lnum > st.last_line
+               then closing ~slack:st.slack st.indent st.open_frames (column s)
+               else st.open_frames
+             in
+             ({st with last_line = e.pos_lnum; open_frames}, open_frames))});
+  }
+
+  (** {2 Brackets} *)
+
+  (* Read the input past the tokens starting at or before [cnum] *)
+  let read_past input cnum =
+    let rec go i =
+      match get input i with
+      | Some (_, s, _) when s.Lexing.pos_cnum <= cnum -> go (i + 1)
+      | _ -> ()
+    in
+    go (max 0 (Vec.length input.read - 1))
+
+  let top_cnum env =
+    match I.top env with
+    | Some (I.Element (_, _, _, e)) -> e.Lexing.pos_cnum
+    | None -> 0
+
+  let brackets ?(slack = 0) (policy : bracket_policy) tokens =
+    let sp = spans policy (input tokens) in
+    let input = sp.input in
+    {
+      cut = (fun env ->
+          read_past input (top_cnum env);
+          let fs = frame_tokens input env in
+          let n = List.length fs in
+          (* The frames and the token after them, where the parser failed *)
+          let next = 1 + List.fold_left (fun m (s, e) -> max m (max s e)) (-1) fs in
+          match violation ~slack sp (fs @ [(next, next)]) with
+          | Some k when k < n ->
+            Option.map (fun env' -> (env', fst (positions env).(k))) (I.pop_many (n - k) env)
+          | _ -> None);
+      start = (fun env ->
+          read_past input (top_cnum env);
+          let root = Array.of_list (frame_tokens input env) in
+          let r = Array.length root in
+          {state = r;
+           feed = (fun open_frames (_, s, _) ->
+               read_past input s.pos_cnum;
+               let j = token_index input s.pos_cnum in
+               let bad, min_bad = prefix_scan ~slack sp root j in
+               let rec go l =
+                 if l < r && not bad.(l + 1) && min_bad.(l + 1) > j then go (l + 1) else l in
+               let o = min open_frames (go 0) in
+               (o, o))});
+    }
+
+  (** {1 The recovery} *)
+
+  type 'a recovery = {
+    r_limit : int;
+    r_lookahead : int;
+    r_steps : bool;
+    r_verify : bool;
+    r_stats : stats;
+    r_log : string -> unit;
+    feed_policy : token -> int;
+    (* The stack the candidates are built from, and the search *)
+    mutable base : 'a I.env;
+    mutable next : unit -> 'a sim option;
+    mutable final : unit -> 'a option;
+    mutable generated : 'a sim Vec.t;
+    mutable exhausted : bool;
+    (* Whether candidate [k] accepts a terminal (a byte per terminal) *)
+    mutable first : Bytes.t Vec.t;
+    (* The tokens fed, not yet consumed, with their number of open frames *)
+    mutable pending : (token * int) list;
+  }
+
+  let restart r env =
+    let next, final =
+      search ~limit:r.r_limit ~steps:r.r_steps ~stats:r.r_stats ~verify:r.r_verify env in
+    r.base <- env; r.next <- next; r.final <- final;
+    r.generated <- Vec.create (); r.exhausted <- false; r.first <- Vec.create ()
+
+  let recover ?(limit = 100) ?(lookahead = 3) ?(steps = true) ?(verify = false)
+      ?(stats = stats ()) ?log policy env =
+    stats.recoveries <- stats.recoveries + 1;
+    let state = ref policy.state in
+    let feed_policy tok = let s, o = policy.feed !state tok in state := s; o in
+    let r = {
+      r_limit = limit; r_lookahead = max 1 lookahead; r_steps = steps; r_verify = verify;
+      r_stats = stats; r_log = Option.value log ~default:ignore; feed_policy;
+      base = env; next = (fun () -> None); final = (fun () -> None);
+      generated = Vec.create (); exhausted = false; first = Vec.create ();
+      pending = [];
+    } in
+    restart r env;
+    r
+
+  (* The candidates, generated as needed by increasing cost *)
+  let rec nth r k =
+    if k < Vec.length r.generated then Some (Vec.get r.generated k)
+    else if r.exhausted then None
+    else match r.next () with
+      | None -> r.exhausted <- true; None
+      | Some c -> Vec.add_last r.generated c; nth r k
+
+  (* The number of frames of the original stack a candidate keeps *)
+  let kept c =
+    let rec go = function
+      | (_, _, k) :: _ when k > 0 -> k
+      | _ :: rest -> go rest
+      | [] -> 0
+    in
+    go c.cells
+
+  (* Choose the candidate that resumes at the first token of [window], and
+     feed it the tokens of the window: [`Resume env], [`Accept v], or
+     [`Skip] if no candidate accepts the first token *)
+  let rec decide r window =
+    let tokens = Array.of_list (List.map fst window) in
+    let get i = if i < Array.length tokens then Some tokens.(i) else None in
+    let open_frames = snd (List.hd window) in
+    let accepts_first k c =
+      while Vec.length r.first <= k do Vec.add_last r.first (Bytes.make terminal_count '?') done;
+      let cache = Vec.get r.first k in
+      let tok, _, _ = tokens.(0) in
+      let t = P.Tables.token2terminal tok in
+      match Bytes.get cache t with
+      | 'y' -> true
+      | 'n' -> false
+      | _ ->
+        let b = sim_accepts c.states get 0 1 in
+        Bytes.set cache t (if b then 'y' else 'n');
+        b
+    in
+    let real_accepts real =
+      match Lazy.force real with
+      | Some env when accepts env get 0 r.r_lookahead -> Some env
+      | _ -> None
+    in
+    let rec first_real = function
+      | [] -> None
+      | real :: rest ->
+        match real_accepts real with Some env -> Some env | None -> first_real rest
+    in
+    (* The cheapest accepting candidate that keeps at most [open_frames]
+       frames; the cheapest accepting one if none does, as skipping tokens
+       cannot close the frames. The candidates are tried on their simulated
+       stack, the real one being built for the candidate chosen, whose
+       semantic actions can still fail. *)
+    let n_real = ref 0 in
+    let rec scan k fallbacks =
+      match nth r k with
+      | None -> first_real (List.rev fallbacks)
+      | Some c ->
+        let accepted = accepts_first k c && sim_accepts c.states get 0 r.r_lookahead in
+        if r.r_verify && not accepted then
+          (match Lazy.force c.real with
+           | Some env when accepts env get 0 r.r_lookahead ->
+             r.r_stats.mismatches <- r.r_stats.mismatches + 1
+           | _ -> ());
+        if not accepted then scan (k + 1) fallbacks
+        else if kept c <= open_frames then
+          match real_accepts c.real with
+          | Some env -> Some env
+          | None -> incr n_real; scan (k + 1) fallbacks
+        else scan (k + 1) (c.real :: fallbacks)
+    in
+    match scan 0 [] with
+    | None when !n_real > 0 && Option.is_some (I.pop r.base) ->
+      (* Candidates accept the token, but the semantic actions of their
+         tactics fail: the frame they complete is dropped, as by [complete],
+         and the recovery resumes below it *)
+      r.r_log "dropping the top frame";
+      restart r (Option.get (I.pop r.base));
+      decide r window
+    | None -> `Skip
+    | Some env ->
+      let rec go env = function
+        | [] -> `Resume env
+        | (tok, _) :: rest ->
+          match offer env tok with
+          | `Ok (I.InputNeeded env') -> go env' rest
+          | `Ok _ -> assert false
+          | `Accept v -> `Accept v
+          | `Error _ -> `Skip
+      in
+      go env window
+
+  let skip r =
+    r.r_stats.skipped <- r.r_stats.skipped + 1;
+    r.pending <- List.tl r.pending
+
+  let feed r tok =
+    r.pending <- r.pending @ [(tok, r.feed_policy tok)];
+    if List.length r.pending < r.r_lookahead then `Recovering
+    else match decide r r.pending with
+      | `Skip -> r.r_log "skipping a token"; skip r; `Recovering
+      | `Resume env -> r.r_log "resuming"; `Resume env
+      | `Accept v -> `Accept v
+
+  let rec finish r =
+    match r.pending with
+    | [] -> r.final ()
+    | window ->
+      match decide r window with
+      | `Skip -> skip r; finish r
+      | `Accept v -> Some v
+      | `Resume env ->
+        let _, final =
+          search ~limit:r.r_limit ~steps:r.r_steps ~stats:r.r_stats ~verify:r.r_verify env in
+        final ()
+
   (** {1 Parsing with recovery} *)
 
-  (* Parse the input from the checkpoint [entry], recovering from the
-     errors with the spans of [policy] *)
+  let input_seq input =
+    let rec from i () =
+      match get input i with
+      | None -> Seq.Nil
+      | Some t -> Seq.Cons (t, from (i + 1))
+    in
+    from 0
 
-  let parse_input ~limit ~lookahead ~slack ~steps ~verify ~stats ~log ~on_error
-      ~on_exception (policy : bracket_policy) (entry : 'a I.checkpoint) input =
-    let log fmt = Printf.ksprintf (fun s -> match log with Some f -> f s | None -> ()) fmt in
+  let parse_input ~limit ~lookahead ~steps ~verify ~stats ~log ~on_error
+      ~on_exception ~repair guide (entry : 'a I.checkpoint) input =
+    let logf fmt = Printf.ksprintf (fun s -> match log with Some f -> f s | None -> ()) fmt in
     let line i = match get input i with Some (_, p, _) -> p.Lexing.pos_lnum | None -> -1 in
-    let sp = lazy (spans policy input) in
     let last_repair = ref (-1) and last_error = ref (-1) in
-    let consistent env j =
-      violation ~slack (Lazy.force sp) (frames input env @ [(j, j)]) = None
+    (* The first token, before [i], starting at or after [p] *)
+    let index_at (p : Lexing.position) i =
+      let lo = ref 0 and hi = ref i in
+      while !lo < !hi do
+        let mid = (!lo + !hi) / 2 in
+        let _, s, _ = token input mid in
+        if s.pos_cnum < p.pos_cnum then lo := mid + 1 else hi := mid
+      done;
+      !lo
     in
     let rec normal (cp : 'a I.checkpoint) i : 'a option =
       match cp with
       | I.InputNeeded env ->
         (match get input i with
-         | None -> log "the input ends at token %d" i; repair env i
+         | None -> logf "the input ends at token %d" i; recover_at env i
          | Some tok ->
            match offer env tok with
            | `Ok cp' -> normal cp' (i + 1)
-           | `Accept v -> log "accepted at token %d (line %d)" i (line i); Some v
+           | `Accept v -> logf "accepted at token %d (line %d)" i (line i); Some v
            | `Error (_, exn) ->
-             log "error at token %d (line %d)" i (line i);
+             logf "error at token %d (line %d)" i (line i);
              (* A repair resumes from an earlier token, and can meet the
                 same error again: it is reported once *)
              if i > !last_error then begin
@@ -1116,164 +1392,48 @@ module Make (P : PARSER) (T : TABLES with type 'a env := 'a P.MenhirInterpreter.
                | _, _, Some f -> f env tok
                | _ -> ()
              end;
-             repair env i)
+             recover_at env i)
       | _ -> assert false
-    (* Cut the stack at the first violation, if any *)
-    and repair (env : 'a I.env) i : 'a option =
-      let fs = frames input env in
-      let starts = List.map fst fs in
-      match violation ~slack (Lazy.force sp) (fs @ [(i, i)]) with
-      | Some k when k < List.length starts && List.nth starts k > !last_repair ->
-        (* A repair resumes from an earlier token: each one must start after
-           the previous one, for the parse to progress *)
-        last_repair := List.nth starts k;
-        stats.repairs <- stats.repairs + 1;
-        log "repair: cut %d frames, resuming at token %d (line %d)"
-          (List.length starts - k) (List.nth starts k) (line (List.nth starts k));
-        (match I.pop_many (List.length starts - k) env with
-         | Some env' -> recover env' (List.nth starts k)
-         | None -> recover env i)
-      | _ -> recover env i
-    and recover (env : 'a I.env) i : 'a option =
-      stats.recoveries <- stats.recoveries + 1;
-      (* The candidates, generated as needed by increasing cost *)
-      let next, final = search ~limit ~steps ~stats ~verify env in
-      let generated = Vec.create () and exhausted = ref false in
-      let rec nth k =
-        if k < Vec.length generated then Some (Vec.get generated k)
-        else if !exhausted then None
-        else match next () with
-          | None -> exhausted := true; None
-          | Some c -> Vec.add_last generated c; nth k
+    and recover_at (env : 'a I.env) i : 'a option =
+      (* The cut advised by the guide: each one must start after the
+         previous one, for the parse to progress *)
+      let env, i =
+        if not repair then (env, i) else
+          match guide.cut env with
+          | Some (env', p) ->
+            let k = index_at p i in
+            if k > !last_repair then begin
+              last_repair := k;
+              stats.repairs <- stats.repairs + 1;
+              logf "repair: resuming at token %d (line %d)" k (line k);
+              (env', k)
+            end else (env, i)
+          | None -> (env, i)
       in
-      (* The frames of the original stack, from the bottom *)
-      let root = lazy (Array.of_list (frames input env)) in
-      (* Whether candidate [k] accepts a token, which depends on its terminal
-         only: the tokens skipped come back *)
-      let first = Vec.create () in
-      let accepts_first k c j =
-        while Vec.length first <= k do Vec.add_last first (Bytes.make terminal_count '?') done;
-        let cache = Vec.get first k in
-        let tok, _, _ = token input j in
-        let t = P.Tables.token2terminal tok in
-        match Bytes.get cache t with
-        | 'y' -> true
-        | 'n' -> false
-        | _ ->
-          let b = sim_accepts c.states input j 1 in
-          Bytes.set cache t (if b then 'y' else 'n');
-          b
+      let r = recover ~limit ~lookahead ~steps ~verify ~stats ?log (guide.start env) env in
+      let rec loop j =
+        match get input j with
+        | None -> logf "completing at the end of input (token %d)" j; finish r
+        | Some tok ->
+          match feed r tok with
+          | `Recovering -> loop (j + 1)
+          | `Resume env ->
+            logf "resumed, at token %d (line %d)" (j + 1) (line (j + 1));
+            normal (I.input_needed env) (j + 1)
+          | `Accept v -> Some v
       in
-      let rec attempt j =
-        if not (has input j) then final () else
-          (* The cheapest candidate consistent with the brackets; the
-             cheapest accepting one if none is, as skipping tokens cannot
-             fix the frames. The candidates are tried on their simulated
-             stack, the real one being built for the candidate chosen,
-             whose semantic actions can still fail. *)
-          let real_accepts real =
-            match Lazy.force real with
-            | Some env when accepts env input j lookahead -> Some env
-            | _ -> None
-          in
-          let rec first_real = function
-            | [] -> None
-            | real :: rest ->
-              match real_accepts real with Some env -> Some env | None -> first_real rest
-          in
-          let prefix = lazy (prefix_scan ~slack (Lazy.force sp) (Lazy.force root) j) in
-          let n_sim = ref 0 and n_cons = ref 0 and n_real = ref 0 in
-          let rec scan k fallbacks =
-            match nth k with
-            | None ->
-              let r = first_real (List.rev fallbacks) in
-              if Option.is_none r then
-                log "no candidate at token %d (line %d): %d candidates, %d accepting by simulation, %d consistent, %d failing on the real stack"
-                  j (line j) k !n_sim !n_cons !n_real;
-              r
-            | Some c ->
-              let accepted = accepts_first k c j && sim_accepts c.states input j lookahead in
-              let consistent' = accepted &&
-                                consistent_cells ~slack input (Lazy.force sp)
-                                  (Lazy.force root) (Lazy.force prefix) c.cells j in
-              if verify then
-                (match Lazy.force c.real with
-                 | Some env when (accepts env input j lookahead && not accepted)
-                              || (accepted && consistent env j <> consistent') ->
-                   stats.mismatches <- stats.mismatches + 1
-                 | _ -> ());
-              if accepted then incr n_sim;
-              if consistent' then incr n_cons;
-              if not accepted then scan (k + 1) fallbacks
-              else if consistent' then
-                match real_accepts c.real with
-                | Some env -> Some env
-                | None ->
-                  incr n_real;
-                  if !n_real = 1 then
-                    log "  first failure: %s" (match Lazy.force c.real with
-                        | None -> "the tactic raises"
-                        | Some env ->
-                          match offer env (token input j) with
-                          | `Error _ -> "the token is rejected or raises"
-                          | `Ok _ -> "a later token is rejected or raises"
-                          | `Accept _ -> "accepts");
-                  scan (k + 1) fallbacks
-              else scan (k + 1) (c.real :: fallbacks)
-          in
-          match scan 0 [] with
-          | None when !n_real > 0 && Option.is_some (I.pop env) ->
-            (* Candidates accept the token, but the semantic actions of their
-               tactics fail: the frame they complete is dropped, as by
-               [complete], and the recovery resumes below it *)
-            log "dropping the top frame at token %d (line %d)" j (line j);
-            recover (Option.get (I.pop env)) j
-          | Some env ->
-            log "resuming at token %d (line %d), %d skipped" j (line j) (j - i);
-            stats.skipped <- stats.skipped + (j - i);
-            (match offer env (token input j) with
-             | `Ok cp -> normal cp (j + 1)
-             | `Accept v -> Some v
-             | `Error _ -> attempt (j + 1))
-          | None ->
-            if not (has input (j + 1)) then
-              (log "completing at the end of input (token %d, %d tokens read)" j (Vec.length input.read); final ())
-            else attempt (j + 1)
-      in
-      attempt i
+      loop i
     in
-    match feed entry with
+    match feed_checkpoint entry with
     | `Ok cp -> normal cp 0
     | `Accept _ | `Early | `Error _ | `Raise _ -> None
 
-  (** Parse from the checkpoint [entry], recovering from the errors with the
-      spans of [policy]: [None] if the parser does not accept (the input is
-      empty, or the parser cannot reach its end).
-
-      - [limit] (100): the number of configurations expanded by a search;
-      - [lookahead] (3): the number of tokens a candidate must accept;
-      - [slack] (0): the number of frames allowed in a closed span beyond
-        one;
-      - [steps] (true): the configurations inside the cheapest strategy of
-        each configuration are candidates too;
-      - [verify] (false): check the simulation against the parser, counting
-        the differences in [stats.mismatches];
-      - [log]: a function receiving a description of each decision of the
-        recovery;
-      - [on_error], [on_exception]: the reporting of the errors, see the
-        interface.
-
-      The tokens are read as needed, a few beyond the current one, and kept
-      until the end of the parse. The sequence must end after the end of
-      input. *)
-  let parse ?(limit = 100) ?(lookahead = 3) ?(slack = 0) ?(steps = true) ?(verify = false)
+  let parse ?(limit = 100) ?(lookahead = 3) ?(steps = true) ?(verify = false) ?(repair = true)
       ?(stats = stats ()) ?log ?on_error ?on_exception policy entry (tokens : token Seq.t) =
-    parse_input ~limit ~lookahead ~slack ~steps ~verify ~stats ~log ~on_error ~on_exception
-      policy entry
-      (input tokens)
+    let input = input tokens in
+    parse_input ~limit ~lookahead ~steps ~verify ~stats ~log ~on_error ~on_exception ~repair
+      (policy (input_seq input)) entry input
 
-  (** The tokens of a supplier, up to the first one that is the end of
-      input, by [is_eof]. *)
   let tokens_of_supplier ~is_eof (supplier : unit -> token) : token Seq.t =
     let rec next ended () =
       if ended then Seq.Nil else
@@ -1282,16 +1442,14 @@ module Make (P : PARSER) (T : TABLES with type 'a env := 'a P.MenhirInterpreter.
     in
     next false
 
-  (** [parse] for a supplier of tokens, as [MenhirInterpreter.loop]. *)
-  let parse_supplier ?limit ?lookahead ?slack ?steps ?verify ?stats ?log ?on_error ?on_exception
+  let parse_supplier ?limit ?lookahead ?steps ?verify ?repair ?stats ?log ?on_error ?on_exception
       ~is_eof policy entry supplier =
-    parse ?limit ?lookahead ?slack ?steps ?verify ?stats ?log ?on_error ?on_exception policy entry
+    parse ?limit ?lookahead ?steps ?verify ?repair ?stats ?log ?on_error ?on_exception policy entry
       (tokens_of_supplier ~is_eof supplier)
 
-  (** [parse] for a lexer and its buffer. *)
-  let parse_lexbuf ?limit ?lookahead ?slack ?steps ?verify ?stats ?log ?on_error ?on_exception
+  let parse_lexbuf ?limit ?lookahead ?steps ?verify ?repair ?stats ?log ?on_error ?on_exception
       ~is_eof policy entry lexer lexbuf =
-    parse_supplier ?limit ?lookahead ?slack ?steps ?verify ?stats ?log ?on_error ?on_exception
+    parse_supplier ?limit ?lookahead ?steps ?verify ?repair ?stats ?log ?on_error ?on_exception
       ~is_eof policy entry
       (I.lexer_lexbuf_to_supplier lexer lexbuf)
 end

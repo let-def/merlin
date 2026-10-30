@@ -76,12 +76,13 @@ let with_eof initial_pos tokens =
   | [] -> [ (Parser_raw.EOF, initial_pos, initial_pos) ]
   | (_, _, endp) :: _ -> tokens @ [ (Parser_raw.EOF, endp, endp) ]
 
-(* The recovery is guided by the indentation: the tokens of a line more
-   indented than the enclosing ones should end up in the same construct *)
+(* The recovery is guided by the positions of the frames of the stack: a
+   line less indented than a construct should not continue it *)
 let parse entry tokens initial_pos =
   let tokens = with_eof initial_pos tokens in
-  R.parse ~on_error ~on_exception R.indentation (entry initial_pos)
-    (List.to_seq tokens)
+  R.parse ~on_error ~on_exception
+    (fun _ -> R.frames ())
+    (entry initial_pos) (List.to_seq tokens)
 
 let run_parser warnings lexer kind =
   Msupport.catch_errors warnings errors_ref @@ fun () ->

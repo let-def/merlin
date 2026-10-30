@@ -31,7 +31,12 @@ type kind = ML | MLI
 
 type t
 
-val make : Warnings.state -> Mreader_lexer.t -> kind -> t
+val make :
+  ?for_completion:Lexing.position ->
+  Warnings.state ->
+  Mreader_lexer.t ->
+  kind ->
+  t
 
 type tree =
   [ `Interface of Parsetree.signature | `Implementation of Parsetree.structure ]
@@ -39,3 +44,15 @@ type tree =
 val result : t -> tree
 
 val errors : t -> exn list
+
+(** The stack of the parser before the token at the cursor of a completion
+    (the identifier or keyword being typed, or the empty identifier inserted
+    at the cursor), and the next tokens of the input after this one (20 at
+    most). *)
+type snapshot =
+  | Snapshot :
+      'a Parser_raw.MenhirInterpreter.env * Parser_raw.token list
+      -> snapshot
+
+(** The stack at the cursor, when parsing for a completion *)
+val snapshot : t -> snapshot option

@@ -435,7 +435,17 @@ let dispatch pipeline (type a) : a Query_protocol.t -> a = function
              ~comments:(Mpipeline.reader_comments pipeline)
              ~pos)
     in
-    let keywords = Mpipeline.reader_lexer_keywords pipeline in
+    (* The keywords that can come at the cursor, from the stack of the
+       parser, all the keywords if it is not known *)
+    let keywords =
+      match Mpipeline.reader_completion_stack pipeline with
+      | Some stack ->
+        List.map (Mreader_complete.keywords stack) ~f:(fun (name, desc) ->
+            (name, Some desc))
+      | None ->
+        List.map (Mpipeline.reader_lexer_keywords pipeline) ~f:(fun name ->
+            (name, None))
+    in
     let entries =
       Printtyp.wrap_printing_env env ~verbosity @@ fun () ->
       Completion.branch_complete config ~kinds ?get_doc ?target_type ~keywords

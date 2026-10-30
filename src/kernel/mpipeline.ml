@@ -122,6 +122,8 @@ let reader_lexer_keywords t = (reader t).result.Mreader.lexer_keywords
 let reader_lexer_errors t = (reader t).result.Mreader.lexer_errors
 let reader_parser_errors t = (reader t).result.Mreader.parser_errors
 
+let reader_completion_stack t = (reader t).result.Mreader.completion_stack
+
 let reader_no_labels_for_completion t =
   (reader t).result.Mreader.no_labels_for_completion
 

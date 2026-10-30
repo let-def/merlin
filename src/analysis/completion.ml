@@ -637,11 +637,14 @@ let complete_prefix ?get_doc ?target_type ?(kinds = []) ~keywords ~prefix
       let compl =
         if not (List.mem `Keywords ~set:kinds) then compl
         else
-          List.fold_left keywords ~init:compl ~f:(fun candidates name ->
+          List.fold_left keywords ~init:compl ~f:(fun candidates (name, desc) ->
               if String.is_prefixed ~by:prefix name then
                 { name;
                   kind = `Keyword;
-                  desc = `None;
+                  desc =
+                    (match desc with
+                    | Some d -> `String d
+                    | None -> `None);
                   info = `None;
                   deprecated = false
                 }

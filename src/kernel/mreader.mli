@@ -9,7 +9,9 @@ type result =
     parser_errors : exn list;
     comments : comment list;
     parsetree : parsetree;
-    no_labels_for_completion : bool
+    no_labels_for_completion : bool;
+    completion_stack : Mreader_parser.snapshot option
+        (** The stack of the parser at the cursor of a completion *)
   }
 
 type pretty_parsetree = Extend_protocol.Reader.pretty_parsetree

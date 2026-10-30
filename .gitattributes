@@ -5,6 +5,8 @@ tests/merlin-wrapper eol=lf
 
 src/ocaml/preprocess/menhirLib.ml text eol=lf
 src/ocaml/preprocess/menhirLib.mli text eol=lf
+src/ocaml/preprocess/lrgrep_completion.ml text eol=lf
+src/ocaml/preprocess/lrgrep_completion.mli text eol=lf
 src/ocaml/preprocess/lrgrep_recovery.ml text eol=lf
 src/ocaml/preprocess/lrgrep_recovery.mli text eol=lf
 src/ocaml/preprocess/lrgrep_runtime.ml text eol=lf
@@ -15,3 +17,4 @@ src/ocaml/preprocess/parser_raw.mli text eol=lf
 # Generated tables, with raw bytes in their strings: never converted
 src/ocaml/preprocess/parser_recovery.ml -text
 src/ocaml/preprocess/parse_errors.ml -text
+src/ocaml/preprocess/parser_completion.ml -text

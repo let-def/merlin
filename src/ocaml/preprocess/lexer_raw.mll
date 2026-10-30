@@ -387,6 +387,12 @@ let is_keyword name =
 
 let () = Lexer.is_keyword_ref := is_keyword
 
+let keyword_tokens () =
+  Hashtbl.fold
+    (fun text token acc ->
+      match token with Some token -> (text, token) :: acc | None -> acc)
+    keyword_table []
+
 let as_keyword token =
   Hashtbl.to_seq keyword_table
   |> Seq.find_map (function

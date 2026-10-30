@@ -10,7 +10,6 @@ Keywords only:
   > -kind k -prefix fu < test.ml| jq ".value.entries[].name"
   "function"
   "fun"
-  "functor"
 
 Keywords and values:
 
@@ -19,17 +18,15 @@ Keywords and values:
   "funnyny"
   "function"
   "fun"
-  "functor"
 
 Keywords only including extension:
 
   $ echo "f" | $MERLIN single complete-prefix -position 1:2 -filename test.ml \
   > -kind k -prefix f -extension lwt | jq ".value.entries[].name"
   "function"
-  "false"
   "fun"
   "for"
-  "functor"
+  "false"
 
 And let's also make sure we don't offer keywords when we completing under a
 certain path

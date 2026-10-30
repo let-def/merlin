@@ -11,7 +11,8 @@ type result =
     parser_errors : exn list;
     comments : comment list;
     parsetree : parsetree;
-    no_labels_for_completion : bool
+    no_labels_for_completion : bool;
+    completion_stack : Mreader_parser.snapshot option
   }
 
 (* Normal entry point *)
@@ -37,27 +38,34 @@ let normal_parse ?for_completion config source =
     let keywords = Extension.keywords Mconfig.(config.merlin.extensions) in
     Mreader_lexer.make Mconfig.(config.ocaml.warnings) keywords config source
   in
+  let for_completion =
+    Option.map
+      ~f:(Msource.get_lexing_pos source ~filename:(Mconfig.filename config))
+      for_completion
+  in
   let no_labels_for_completion, lexer =
     match for_completion with
     | None -> (false, lexer)
-    | Some pos ->
-      let pos =
-        Msource.get_lexing_pos source ~filename:(Mconfig.filename config) pos
-      in
-      Mreader_lexer.for_completion lexer pos
+    | Some pos -> Mreader_lexer.for_completion lexer pos
   in
-  let parser = Mreader_parser.make Mconfig.(config.ocaml.warnings) lexer kind in
+  let parser =
+    Mreader_parser.make ?for_completion
+      Mconfig.(config.ocaml.warnings)
+      lexer kind
+  in
   let lexer_keywords = Mreader_lexer.keywords lexer
   and lexer_errors = Mreader_lexer.errors lexer
   and parser_errors = Mreader_parser.errors parser
   and parsetree = Mreader_parser.result parser
-  and comments = Mreader_lexer.comments lexer in
+  and comments = Mreader_lexer.comments lexer
+  and completion_stack = Mreader_parser.snapshot parser in
   { lexer_keywords;
     lexer_errors;
     parser_errors;
     comments;
     parsetree;
-    no_labels_for_completion
+    no_labels_for_completion;
+    completion_stack
   }
 
 (* Pretty-printing *)
@@ -185,7 +193,8 @@ let parse ?for_completion config = function
         parser_errors;
         comments;
         parsetree;
-        no_labels_for_completion
+        no_labels_for_completion;
+        completion_stack = None
       }
     | None -> normal_parse ?for_completion config source
     end
@@ -197,5 +206,6 @@ let parse ?for_completion config = function
       parser_errors;
       comments;
       parsetree;
-      no_labels_for_completion = false
+      no_labels_for_completion = false;
+      completion_stack = None
     }

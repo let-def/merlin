@@ -19,18 +19,18 @@
           {
             "start": {
               "line": 2,
-              "col": 8
+              "col": 11
             },
             "end": {
               "line": 2,
-              "col": 14
+              "col": 13
             },
             "message": "Hint: Did you forget a ;?"
           },
           {
             "start": {
               "line": 2,
-              "col": 8
+              "col": 13
             },
             "end": {
               "line": 2,

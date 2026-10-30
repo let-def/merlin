@@ -191,14 +191,6 @@ reference.  With no liba, we also can't see Libb.t is int.
         "type": "typer",
         "sub": [
           {
-            "start": {
-              "line": 4,
-              "col": 8
-            },
-            "end": {
-              "line": 4,
-              "col": 12
-            },
             "message": "Hint: Did you mean Libb?"
           }
         ],
@@ -240,14 +232,6 @@ reference.  With no liba, we also can't see Libb.t is int.
         "type": "typer",
         "sub": [
           {
-            "start": {
-              "line": 4,
-              "col": 8
-            },
-            "end": {
-              "line": 4,
-              "col": 12
-            },
             "message": "Hint: Did you mean Libb?"
           }
         ],

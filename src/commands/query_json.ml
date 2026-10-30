@@ -269,12 +269,13 @@ let json_of_type_loc (loc, desc, tail) =
     ]
 
 let json_of_error (error : Location.error) =
-  let of_sub loc sub =
+  (* A sub-message has its own location *)
+  let of_sub (sub : Location.msg) =
     let msg =
       Location.print_sub_msg Format.str_formatter sub;
       String.trim (Format.flush_str_formatter ())
     in
-    with_location ~skip_none:true loc [ ("message", `String msg) ]
+    with_location ~skip_none:true sub.loc [ ("message", `String msg) ]
   in
   let loc = Location.loc_of_report error in
   let msg = Format.asprintf "@[%a@]" Location.print_main error |> String.trim in
@@ -293,7 +294,7 @@ let json_of_error (error : Location.error) =
   in
   let content =
     [ ("type", `String typ);
-      ("sub", `List (List.map ~f:(of_sub loc) error.sub));
+      ("sub", `List (List.map ~f:of_sub error.sub));
       ("valid", `Bool true);
       ("message", `String msg)
     ]

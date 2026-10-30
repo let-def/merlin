@@ -22,14 +22,6 @@
     "type": "typer",
     "sub": [
       {
-        "start": {
-          "line": 7,
-          "col": 10
-        },
-        "end": {
-          "line": 7,
-          "col": 11
-        },
         "message": "Hint: Did you mean cdefg?"
       }
     ],

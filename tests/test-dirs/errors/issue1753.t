@@ -24,11 +24,11 @@ should fail
       {
         "start": {
           "line": 1,
-          "col": 0
+          "col": 3
         },
         "end": {
           "line": 1,
-          "col": 2
+          "col": 12
         },
         "message": "String literal begins here"
       }
@@ -77,11 +77,11 @@ should fail
       {
         "start": {
           "line": 1,
-          "col": 0
+          "col": 3
         },
         "end": {
           "line": 1,
-          "col": 2
+          "col": 7
         },
         "message": "String literal begins here"
       }

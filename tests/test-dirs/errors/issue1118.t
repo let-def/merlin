@@ -33,6 +33,20 @@ See https://github.com/ocaml/merlin/issues/1118.
           "line": 1,
           "col": 23
         },
+        "type": "parser",
+        "sub": [],
+        "valid": true,
+        "message": "Expected a type variable after `as`"
+      },
+      {
+        "start": {
+          "line": 1,
+          "col": 22
+        },
+        "end": {
+          "line": 1,
+          "col": 23
+        },
         "type": "typer",
         "sub": [],
         "valid": true,

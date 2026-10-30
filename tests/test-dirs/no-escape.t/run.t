@@ -18,6 +18,21 @@ should reach top-level
         "type": "typer",
         "sub": [],
         "valid": true,
+        "message": "Constraints are not satisfied in this type.
+  Type 'a should be an instance of p"
+      },
+      {
+        "start": {
+          "line": 1,
+          "col": 19
+        },
+        "end": {
+          "line": 1,
+          "col": 26
+        },
+        "type": "typer",
+        "sub": [],
+        "valid": true,
         "message": "The type constructor p expects 0 argument(s),
   but is here applied to 1 argument(s)"
       },

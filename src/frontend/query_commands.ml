@@ -786,10 +786,17 @@ let dispatch pipeline (type a) : a Query_protocol.t -> a = function
         result
     in
     let parser_errors = List.filter_map ~f:filter_parser_error parser_errors in
-    (* Sort errors *)
+    (* Sort errors, and remove the duplicates: the errors at the same
+       location with the same message *)
     let cmp e1 e2 =
       let n = Lexing.compare_pos (error_start e1) (error_start e2) in
-      if n <> 0 then n else Lexing.compare_pos (error_end e1) (error_end e2)
+      if n <> 0 then n
+      else
+        let n = Lexing.compare_pos (error_end e1) (error_end e2) in
+        if n <> 0 then n
+        else
+          let message e = Format.asprintf "%a" Location.print_main e in
+          compare (message e1) (message e2)
     in
     let errors =
       List.sort_uniq ~cmp

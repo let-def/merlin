@@ -11,31 +11,30 @@ See https://github.com/ocaml/merlin/issues/2000.
       {
         "start": {
           "line": 1,
-          "col": 4
+          "col": 21
         },
         "end": {
           "line": 1,
-          "col": 33
+          "col": 21
         },
         "type": "typer",
         "sub": [],
         "valid": true,
-        "message": "This definition has type bool which is less general than 'a. 'a
-  The type bool is not a type variable."
+        "message": "The type variable name '_ is not allowed in programs"
       },
       {
         "start": {
           "line": 1,
-          "col": 21
+          "col": 22
         },
         "end": {
           "line": 1,
           "col": 23
         },
-        "type": "parser",
+        "type": "typer",
         "sub": [],
         "valid": true,
-        "message": "In this scoped type, variable 'b is reserved for the local type b."
+        "message": "Unbound value b"
       }
     ],
     "notifications": []

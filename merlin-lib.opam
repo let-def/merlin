@@ -18,6 +18,7 @@ depends: [
   "menhir"    {dev & >= "20260209"}
   "menhirLib" {dev & >= "20260209"}
   "menhirSdk" {dev & >= "20260209"}
+  "lrgrep"    {dev & >= "0.9"}
 ]
 synopsis:
   "Merlin's libraries"

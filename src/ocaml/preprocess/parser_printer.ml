@@ -854,133 +854,357 @@ let print_token = function
   | AMPERSAND -> print_value (MenhirInterpreter.T MenhirInterpreter.T_AMPERSAND) ()
   | AMPERAMPER -> print_value (MenhirInterpreter.T MenhirInterpreter.T_AMPERAMPER) ()
 
-let token_of_terminal (type a) (t : a MenhirInterpreter.terminal) (v : a) : token =
-  match t with
-  | MenhirInterpreter.T_error -> assert false
-  | MenhirInterpreter.T_WITH -> WITH
-  | MenhirInterpreter.T_WHILE -> WHILE
-  | MenhirInterpreter.T_WHEN -> WHEN
-  | MenhirInterpreter.T_VIRTUAL -> VIRTUAL
-  | MenhirInterpreter.T_VAL -> VAL
-  | MenhirInterpreter.T_UNDERSCORE -> UNDERSCORE
-  | MenhirInterpreter.T_UIDENT -> UIDENT v
-  | MenhirInterpreter.T_TYPE -> TYPE
-  | MenhirInterpreter.T_TRY -> TRY
-  | MenhirInterpreter.T_TRUE -> TRUE
-  | MenhirInterpreter.T_TO -> TO
-  | MenhirInterpreter.T_TILDE -> TILDE
-  | MenhirInterpreter.T_THEN -> THEN
-  | MenhirInterpreter.T_STRUCT -> STRUCT
-  | MenhirInterpreter.T_STRING -> STRING v
-  | MenhirInterpreter.T_STAR -> STAR
-  | MenhirInterpreter.T_SIG -> SIG
-  | MenhirInterpreter.T_SEMISEMI -> SEMISEMI
-  | MenhirInterpreter.T_SEMI -> SEMI
-  | MenhirInterpreter.T_RPAREN -> RPAREN
-  | MenhirInterpreter.T_REC -> REC
-  | MenhirInterpreter.T_RBRACKET -> RBRACKET
-  | MenhirInterpreter.T_RBRACE -> RBRACE
-  | MenhirInterpreter.T_QUOTED_STRING_ITEM -> QUOTED_STRING_ITEM v
-  | MenhirInterpreter.T_QUOTED_STRING_EXPR -> QUOTED_STRING_EXPR v
-  | MenhirInterpreter.T_QUOTE -> QUOTE
-  | MenhirInterpreter.T_QUESTION -> QUESTION
-  | MenhirInterpreter.T_PRIVATE -> PRIVATE
-  | MenhirInterpreter.T_PREFIXOP -> PREFIXOP v
-  | MenhirInterpreter.T_PLUSEQ -> PLUSEQ
-  | MenhirInterpreter.T_PLUSDOT -> PLUSDOT
-  | MenhirInterpreter.T_PLUS -> PLUS
-  | MenhirInterpreter.T_PERCENT -> PERCENT
-  | MenhirInterpreter.T_OR -> OR
-  | MenhirInterpreter.T_OPTLABEL -> OPTLABEL v
-  | MenhirInterpreter.T_OPEN -> OPEN
-  | MenhirInterpreter.T_OF -> OF
-  | MenhirInterpreter.T_OBJECT -> OBJECT
-  | MenhirInterpreter.T_NONREC -> NONREC
-  | MenhirInterpreter.T_NEW -> NEW
-  | MenhirInterpreter.T_MUTABLE -> MUTABLE
-  | MenhirInterpreter.T_MODULE -> MODULE
-  | MenhirInterpreter.T_MINUSGREATER -> MINUSGREATER
-  | MenhirInterpreter.T_MINUSDOT -> MINUSDOT
-  | MenhirInterpreter.T_MINUS -> MINUS
-  | MenhirInterpreter.T_METHOD -> METHOD
-  | MenhirInterpreter.T_METAOCAML_ESCAPE -> METAOCAML_ESCAPE
-  | MenhirInterpreter.T_METAOCAML_BRACKET_OPEN -> METAOCAML_BRACKET_OPEN
-  | MenhirInterpreter.T_METAOCAML_BRACKET_CLOSE -> METAOCAML_BRACKET_CLOSE
-  | MenhirInterpreter.T_MATCH -> MATCH
-  | MenhirInterpreter.T_LPAREN -> LPAREN
-  | MenhirInterpreter.T_LIDENT -> LIDENT v
-  | MenhirInterpreter.T_LETOP -> LETOP v
-  | MenhirInterpreter.T_LET -> LET
-  | MenhirInterpreter.T_LESSMINUS -> LESSMINUS
-  | MenhirInterpreter.T_LESS -> LESS
-  | MenhirInterpreter.T_LBRACKETPERCENTPERCENT -> LBRACKETPERCENTPERCENT
-  | MenhirInterpreter.T_LBRACKETPERCENT -> LBRACKETPERCENT
-  | MenhirInterpreter.T_LBRACKETLESS -> LBRACKETLESS
-  | MenhirInterpreter.T_LBRACKETGREATER -> LBRACKETGREATER
-  | MenhirInterpreter.T_LBRACKETBAR -> LBRACKETBAR
-  | MenhirInterpreter.T_LBRACKETATATAT -> LBRACKETATATAT
-  | MenhirInterpreter.T_LBRACKETATAT -> LBRACKETATAT
-  | MenhirInterpreter.T_LBRACKETAT -> LBRACKETAT
-  | MenhirInterpreter.T_LBRACKET -> LBRACKET
-  | MenhirInterpreter.T_LBRACELESS -> LBRACELESS
-  | MenhirInterpreter.T_LBRACE -> LBRACE
-  | MenhirInterpreter.T_LAZY -> LAZY
-  | MenhirInterpreter.T_LABEL -> LABEL v
-  | MenhirInterpreter.T_INT -> INT v
-  | MenhirInterpreter.T_INITIALIZER -> INITIALIZER
-  | MenhirInterpreter.T_INHERIT -> INHERIT
-  | MenhirInterpreter.T_INFIXOP4 -> INFIXOP4 v
-  | MenhirInterpreter.T_INFIXOP3 -> INFIXOP3 v
-  | MenhirInterpreter.T_INFIXOP2 -> INFIXOP2 v
-  | MenhirInterpreter.T_INFIXOP1 -> INFIXOP1 v
-  | MenhirInterpreter.T_INFIXOP0 -> INFIXOP0 v
-  | MenhirInterpreter.T_INCLUDE -> INCLUDE
-  | MenhirInterpreter.T_IN -> IN
-  | MenhirInterpreter.T_IF -> IF
-  | MenhirInterpreter.T_HASHOP -> HASHOP v
-  | MenhirInterpreter.T_HASH -> HASH
-  | MenhirInterpreter.T_GREATERRBRACKET -> GREATERRBRACKET
-  | MenhirInterpreter.T_GREATERRBRACE -> GREATERRBRACE
-  | MenhirInterpreter.T_GREATER -> GREATER
-  | MenhirInterpreter.T_FUNCTOR -> FUNCTOR
-  | MenhirInterpreter.T_FUNCTION -> FUNCTION
-  | MenhirInterpreter.T_FUN -> FUN
-  | MenhirInterpreter.T_FOR -> FOR
-  | MenhirInterpreter.T_FLOAT -> FLOAT v
-  | MenhirInterpreter.T_FALSE -> FALSE
-  | MenhirInterpreter.T_EXTERNAL -> EXTERNAL
-  | MenhirInterpreter.T_EXCEPTION -> EXCEPTION
-  | MenhirInterpreter.T_EQUAL -> EQUAL
-  | MenhirInterpreter.T_EOL -> EOL
-  | MenhirInterpreter.T_EOF -> EOF
-  | MenhirInterpreter.T_END -> END
-  | MenhirInterpreter.T_ELSE -> ELSE
-  | MenhirInterpreter.T_EFFECT -> EFFECT
-  | MenhirInterpreter.T_DOWNTO -> DOWNTO
-  | MenhirInterpreter.T_DOTOP -> DOTOP v
-  | MenhirInterpreter.T_DOTDOT -> DOTDOT
-  | MenhirInterpreter.T_DOT -> DOT
-  | MenhirInterpreter.T_DONE -> DONE
-  | MenhirInterpreter.T_DOCSTRING -> DOCSTRING v
-  | MenhirInterpreter.T_DO -> DO
-  | MenhirInterpreter.T_CONSTRAINT -> CONSTRAINT
-  | MenhirInterpreter.T_COMMENT -> COMMENT v
-  | MenhirInterpreter.T_COMMA -> COMMA
-  | MenhirInterpreter.T_COLONGREATER -> COLONGREATER
-  | MenhirInterpreter.T_COLONEQUAL -> COLONEQUAL
-  | MenhirInterpreter.T_COLONCOLON -> COLONCOLON
-  | MenhirInterpreter.T_COLON -> COLON
-  | MenhirInterpreter.T_CLASS -> CLASS
-  | MenhirInterpreter.T_CHAR -> CHAR v
-  | MenhirInterpreter.T_BEGIN -> BEGIN
-  | MenhirInterpreter.T_BARRBRACKET -> BARRBRACKET
-  | MenhirInterpreter.T_BARBAR -> BARBAR
-  | MenhirInterpreter.T_BAR -> BAR
-  | MenhirInterpreter.T_BANG -> BANG
-  | MenhirInterpreter.T_BACKQUOTE -> BACKQUOTE
-  | MenhirInterpreter.T_ASSERT -> ASSERT
-  | MenhirInterpreter.T_AS -> AS
-  | MenhirInterpreter.T_ANDOP -> ANDOP v
-  | MenhirInterpreter.T_AND -> AND
-  | MenhirInterpreter.T_AMPERSAND -> AMPERSAND
-  | MenhirInterpreter.T_AMPERAMPER -> AMPERAMPER
+let symbol_of_index = function
+  | 0 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_error))
+  | 1 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_WITH))
+  | 2 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_WHILE))
+  | 3 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_WHEN))
+  | 4 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_VIRTUAL))
+  | 5 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_VAL))
+  | 6 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_UNDERSCORE))
+  | 7 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_UIDENT))
+  | 8 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_TYPE))
+  | 9 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_TRY))
+  | 10 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_TRUE))
+  | 11 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_TO))
+  | 12 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_TILDE))
+  | 13 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_THEN))
+  | 14 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_STRUCT))
+  | 15 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_STRING))
+  | 16 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_STAR))
+  | 17 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_SIG))
+  | 18 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_SEMISEMI))
+  | 19 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_SEMI))
+  | 20 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_RPAREN))
+  | 21 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_REC))
+  | 22 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_RBRACKET))
+  | 23 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_RBRACE))
+  | 24 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_QUOTED_STRING_ITEM))
+  | 25 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_QUOTED_STRING_EXPR))
+  | 26 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_QUOTE))
+  | 27 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_QUESTION))
+  | 28 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_PRIVATE))
+  | 29 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_PREFIXOP))
+  | 30 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_PLUSEQ))
+  | 31 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_PLUSDOT))
+  | 32 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_PLUS))
+  | 33 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_PERCENT))
+  | 34 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_OR))
+  | 35 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_OPTLABEL))
+  | 36 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_OPEN))
+  | 37 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_OF))
+  | 38 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_OBJECT))
+  | 39 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_NONREC))
+  | 40 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_NEW))
+  | 41 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_MUTABLE))
+  | 42 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_MODULE))
+  | 43 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_MINUSGREATER))
+  | 44 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_MINUSDOT))
+  | 45 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_MINUS))
+  | 46 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_METHOD))
+  | 47 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_METAOCAML_ESCAPE))
+  | 48 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_METAOCAML_BRACKET_OPEN))
+  | 49 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_METAOCAML_BRACKET_CLOSE))
+  | 50 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_MATCH))
+  | 51 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_LPAREN))
+  | 52 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_LIDENT))
+  | 53 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_LETOP))
+  | 54 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_LET))
+  | 55 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_LESSMINUS))
+  | 56 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_LESS))
+  | 57 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_LBRACKETPERCENTPERCENT))
+  | 58 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_LBRACKETPERCENT))
+  | 59 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_LBRACKETLESS))
+  | 60 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_LBRACKETGREATER))
+  | 61 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_LBRACKETBAR))
+  | 62 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_LBRACKETATATAT))
+  | 63 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_LBRACKETATAT))
+  | 64 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_LBRACKETAT))
+  | 65 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_LBRACKET))
+  | 66 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_LBRACELESS))
+  | 67 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_LBRACE))
+  | 68 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_LAZY))
+  | 69 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_LABEL))
+  | 70 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_INT))
+  | 71 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_INITIALIZER))
+  | 72 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_INHERIT))
+  | 73 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_INFIXOP4))
+  | 74 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_INFIXOP3))
+  | 75 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_INFIXOP2))
+  | 76 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_INFIXOP1))
+  | 77 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_INFIXOP0))
+  | 78 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_INCLUDE))
+  | 79 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_IN))
+  | 80 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_IF))
+  | 81 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_HASHOP))
+  | 82 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_HASH))
+  | 83 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_GREATERRBRACKET))
+  | 84 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_GREATERRBRACE))
+  | 85 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_GREATER))
+  | 86 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_FUNCTOR))
+  | 87 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_FUNCTION))
+  | 88 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_FUN))
+  | 89 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_FOR))
+  | 90 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_FLOAT))
+  | 91 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_FALSE))
+  | 92 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_EXTERNAL))
+  | 93 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_EXCEPTION))
+  | 94 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_EQUAL))
+  | 95 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_EOL))
+  | 96 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_EOF))
+  | 97 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_END))
+  | 98 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_ELSE))
+  | 99 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_EFFECT))
+  | 100 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_DOWNTO))
+  | 101 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_DOTOP))
+  | 102 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_DOTDOT))
+  | 103 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_DOT))
+  | 104 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_DONE))
+  | 105 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_DOCSTRING))
+  | 106 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_DO))
+  | 107 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_CONSTRAINT))
+  | 108 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_COMMENT))
+  | 109 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_COMMA))
+  | 110 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_COLONGREATER))
+  | 111 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_COLONEQUAL))
+  | 112 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_COLONCOLON))
+  | 113 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_COLON))
+  | 114 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_CLASS))
+  | 115 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_CHAR))
+  | 116 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_BEGIN))
+  | 117 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_BARRBRACKET))
+  | 118 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_BARBAR))
+  | 119 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_BAR))
+  | 120 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_BANG))
+  | 121 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_BACKQUOTE))
+  | 122 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_ASSERT))
+  | 123 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_AS))
+  | 124 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_ANDOP))
+  | 125 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_AND))
+  | 126 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_AMPERSAND))
+  | 127 -> Some (MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_AMPERAMPER))
+  | 144 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_with_type_binder))
+  | 145 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_with_constraint))
+  | 146 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_virtual_with_private_flag))
+  | 147 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_virtual_with_mutable_flag))
+  | 148 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_virtual_flag))
+  | 149 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_value_description))
+  | 150 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_value))
+  | 151 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_val_longident))
+  | 152 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_val_ident))
+  | 153 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_val_extra_ident))
+  | 154 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_use_file))
+  | 155 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_type_variance))
+  | 156 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_type_variable))
+  | 157 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_type_parameters))
+  | 158 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_type_parameter))
+  | 159 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_type_longident))
+  | 160 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_type_kind))
+  | 161 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_type_constraint))
+  | 162 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_tuple_type))
+  | 163 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_toplevel_phrase))
+  | 164 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_toplevel_directive))
+  | 165 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_tag_field))
+  | 166 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_subtractive))
+  | 167 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_structure_item))
+  | 168 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_structure))
+  | 169 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_strict_binding))
+  | 170 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_str_exception_declaration))
+  | 171 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_single_attr_id))
+  | 172 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_simple_pattern_not_ident))
+  | 173 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_simple_pattern))
+  | 174 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_simple_param_pattern))
+  | 175 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_simple_expr))
+  | 176 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_simple_delimited_pattern))
+  | 177 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_signed_constant))
+  | 178 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_signature_item))
+  | 179 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_signature))
+  | 180 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_sig_exception_declaration))
+  | 181 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_seq_expr))
+  | 182 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_separated_or_terminated_nonempty_list_SEMI_record_expr_field_))
+  | 183 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_separated_or_terminated_nonempty_list_SEMI_pattern_))
+  | 184 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_separated_or_terminated_nonempty_list_SEMI_object_expr_field_))
+  | 185 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_separated_or_terminated_nonempty_list_SEMI_expr_))
+  | 186 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_row_field))
+  | 187 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_reversed_separated_nontrivial_llist_COMMA_core_type_))
+  | 188 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_reversed_separated_nonempty_llist_STAR_labeled_tuple_typ_element_))
+  | 189 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_reversed_separated_nonempty_llist_STAR_atomic_type_))
+  | 190 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_reversed_separated_nonempty_llist_COMMA_type_parameter_))
+  | 191 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_reversed_separated_nonempty_llist_COMMA_core_type_))
+  | 192 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_reversed_separated_nonempty_llist_BAR_row_field_))
+  | 193 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_reversed_separated_nonempty_llist_AND_with_constraint_))
+  | 194 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_reversed_separated_nonempty_llist_AMPERSAND_core_type_no_attr_))
+  | 195 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_reversed_preceded_or_separated_nonempty_llist_BAR_match_case_))
+  | 196 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_reversed_nonempty_llist_typevar_))
+  | 197 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_reversed_nonempty_llist_name_tag_))
+  | 198 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_reversed_nonempty_llist_labeled_simple_expr_))
+  | 199 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_reversed_nonempty_llist_functor_arg_))
+  | 200 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_reversed_nonempty_concat_fun_param_as_list_))
+  | 201 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_reversed_llist_preceded_CONSTRAINT_constrain__))
+  | 202 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_reversed_labeled_tuple_pattern_pattern_no_exn_))
+  | 203 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_reversed_labeled_tuple_pattern_pattern_))
+  | 204 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_reversed_labeled_tuple_body))
+  | 205 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_reversed_bar_llist_extension_constructor_declaration_))
+  | 206 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_reversed_bar_llist_extension_constructor_))
+  | 207 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_reversed_bar_llist_constructor_declaration_))
+  | 208 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_record_expr_content))
+  | 209 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_rec_flag))
+  | 210 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_private_virtual_flags))
+  | 211 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_private_flag))
+  | 212 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_primitive_declaration))
+  | 213 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_post_item_attribute))
+  | 214 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_possibly_poly_core_type_no_attr_))
+  | 215 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_possibly_poly_core_type_))
+  | 216 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_payload))
+  | 217 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_pattern_var))
+  | 218 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_pattern_no_exn))
+  | 219 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_pattern_gen))
+  | 220 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_pattern))
+  | 221 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_parse_val_longident))
+  | 222 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_parse_pattern))
+  | 223 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_parse_mty_longident))
+  | 224 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_parse_module_type))
+  | 225 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_parse_module_expr))
+  | 226 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_parse_mod_longident))
+  | 227 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_parse_mod_ext_longident))
+  | 228 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_parse_expression))
+  | 229 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_parse_core_type))
+  | 230 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_parse_constr_longident))
+  | 231 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_parse_any_longident))
+  | 232 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_paren_module_expr))
+  | 233 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_optlabel))
+  | 234 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_option_type_constraint_))
+  | 235 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_option_preceded_EQUAL_seq_expr__))
+  | 236 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_option_preceded_EQUAL_pattern__))
+  | 237 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_option_preceded_EQUAL_module_type__))
+  | 238 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_option_preceded_EQUAL_expr__))
+  | 239 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_option_preceded_COLON_core_type__))
+  | 240 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_option_preceded_COLON_atomic_type__))
+  | 241 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_option_preceded_AS_mkrhs_LIDENT___))
+  | 242 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_option_SEMI_))
+  | 243 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_option_BAR_))
+  | 244 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_opt_ampersand))
+  | 245 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_operator))
+  | 246 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_open_description))
+  | 247 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_open_declaration))
+  | 248 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_object_type))
+  | 249 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_nonempty_type_kind))
+  | 250 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_nonempty_list_raw_string_))
+  | 251 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_nonempty_list_mkrhs_LIDENT__))
+  | 252 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_name_tag))
+  | 253 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_mutable_virtual_flags))
+  | 254 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_mutable_flag))
+  | 255 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_mty_longident))
+  | 256 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_module_type_subst))
+  | 257 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_module_type_declaration))
+  | 258 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_module_type))
+  | 259 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_module_subst))
+  | 260 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_module_name))
+  | 261 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_module_expr))
+  | 262 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_module_declaration_body))
+  | 263 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_module_binding_body))
+  | 264 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_mod_longident))
+  | 265 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_mod_ext_longident))
+  | 266 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_mk_longident_mod_longident_val_ident_))
+  | 267 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_mk_longident_mod_longident_UIDENT_))
+  | 268 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_mk_longident_mod_longident_LIDENT_))
+  | 269 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_mk_longident_mod_ext_longident_ident_))
+  | 270 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_mk_longident_mod_ext_longident___anonymous_43_))
+  | 271 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_mk_longident_mod_ext_longident_UIDENT_))
+  | 272 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_mk_longident_mod_ext_longident_LIDENT_))
+  | 273 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_method_))
+  | 274 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_meth_list))
+  | 275 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_match_case))
+  | 276 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_local_structure_item))
+  | 277 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_listx_SEMI_record_pat_field_UNDERSCORE_))
+  | 278 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_list_use_file_element_))
+  | 279 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_list_text_str_structure_item__))
+  | 280 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_list_text_cstr_class_field__))
+  | 281 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_list_text_csig_class_sig_field__))
+  | 282 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_list_structure_element_))
+  | 283 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_list_signature_element_))
+  | 284 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_list_post_item_attribute_))
+  | 285 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_list_generic_and_type_declaration_type_subst_kind__))
+  | 286 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_list_generic_and_type_declaration_type_kind__))
+  | 287 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_list_attribute_))
+  | 288 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_list_and_module_declaration_))
+  | 289 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_list_and_module_binding_))
+  | 290 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_list_and_class_type_declaration_))
+  | 291 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_list_and_class_description_))
+  | 292 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_list_and_class_declaration_))
+  | 293 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_letop_bindings))
+  | 294 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_letop_binding_body))
+  | 295 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_let_pattern))
+  | 296 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_let_bindings_no_ext_))
+  | 297 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_let_bindings_ext_))
+  | 298 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_let_binding_body_no_punning))
+  | 299 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_let_binding_body))
+  | 300 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_labeled_tuple_pattern_pattern_no_exn_))
+  | 301 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_labeled_tuple_pattern_pattern_))
+  | 302 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_labeled_tuple_pat_element_list_pattern_no_exn_))
+  | 303 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_labeled_tuple_pat_element_list_pattern_))
+  | 304 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_labeled_simple_expr))
+  | 305 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_label_longident))
+  | 306 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_label_let_pattern))
+  | 307 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_label_declarations))
+  | 308 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_label_declaration_semi))
+  | 309 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_label_declaration))
+  | 310 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_item_extension))
+  | 311 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_interface))
+  | 312 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_index_mod))
+  | 313 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_implementation))
+  | 314 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_ident))
+  | 315 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_generic_type_declaration_nonrec_flag_type_kind_))
+  | 316 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_generic_type_declaration_no_nonrec_flag_type_subst_kind_))
+  | 317 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_generic_constructor_declaration_epsilon_))
+  | 318 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_generic_constructor_declaration_BAR_))
+  | 319 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_generalized_constructor_arguments))
+  | 320 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_functor_args))
+  | 321 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_functor_arg))
+  | 322 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_function_type))
+  | 323 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_fun_seq_expr))
+  | 324 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_fun_params))
+  | 325 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_fun_param_as_list))
+  | 326 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_fun_expr))
+  | 327 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_fun_body))
+  | 328 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_formal_class_parameters))
+  | 329 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_floating_attribute))
+  | 330 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_extension_type))
+  | 331 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_extension_constructor_rebind_epsilon_))
+  | 332 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_extension_constructor_rebind_BAR_))
+  | 333 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_extension))
+  | 334 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_ext))
+  | 335 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_expr_colon_package_type))
+  | 336 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_direction_flag))
+  | 337 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_delimited_type_supporting_local_open))
+  | 338 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_delimited_type))
+  | 339 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_core_type))
+  | 340 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_constructor_declarations))
+  | 341 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_constructor_arguments))
+  | 342 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_constrain_field))
+  | 343 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_constr_longident))
+  | 344 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_constr_ident))
+  | 345 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_constr_extra_nonprefix_ident))
+  | 346 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_constant))
+  | 347 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_clty_longident))
+  | 348 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_class_type_declarations))
+  | 349 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_class_type))
+  | 350 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_class_simple_expr))
+  | 351 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_class_signature))
+  | 352 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_class_sig_field))
+  | 353 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_class_self_type))
+  | 354 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_class_self_pattern))
+  | 355 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_class_longident))
+  | 356 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_class_fun_def))
+  | 357 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_class_fun_binding))
+  | 358 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_class_field))
+  | 359 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_class_expr))
+  | 360 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_attribute))
+  | 361 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_attr_payload))
+  | 362 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_attr_id))
+  | 363 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_atomic_type))
+  | 364 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_any_longident))
+  | 365 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_and_let_binding))
+  | 366 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_alias_type))
+  | 367 -> Some (MenhirInterpreter.X (MenhirInterpreter.N MenhirInterpreter.N_additive))
+  | _ -> None

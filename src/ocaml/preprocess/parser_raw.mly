@@ -795,16 +795,19 @@ let merloc startpos ?endpos x =
   open Parsetree
   open Ast_helper
 
-  let default_loc = ref Location.none
+  (* The placeholders, at the position of the recovery *)
+  let default_loc pos =
+    { Location.loc_start = pos; loc_end = pos; loc_ghost = true }
 
-  let default_expr () =
-    let id = Location.mkloc Ast_helper.hole_txt !default_loc in
-    Exp.mk ~loc:!default_loc (Pexp_extension (id, PStr []))
+  let default_expr pos =
+    let loc = default_loc pos in
+    let id = Location.mkloc Ast_helper.hole_txt loc in
+    Exp.mk ~loc (Pexp_extension (id, PStr []))
 
-  let default_pattern () = Pat.any ~loc:!default_loc ()
+  let default_pattern pos = Pat.any ~loc:(default_loc pos) ()
 
-  let default_module_expr () = Mod.structure ~loc:!default_loc []
-  let default_module_type () = Mty.signature ~loc:!default_loc []
+  let default_module_expr pos = Mod.structure ~loc:(default_loc pos) []
+  let default_module_type pos = Mty.signature ~loc:(default_loc pos) []
 ]
 
 /* Tokens */
@@ -1504,7 +1507,7 @@ module_name:
    which are resolved by precedence declarations. This is concise but fragile.
    Perhaps in the future an explicit stratification could be used. *)
 
-module_expr [@recovery default_module_expr ()]:
+module_expr [@recovery default_module_expr _startpos]:
   | STRUCT attrs = attributes s = structure END
       { mkmod ~loc:$sloc ~attrs (Pmod_structure s) }
   (*
@@ -1824,7 +1827,7 @@ open_description:
 
 /* Module types */
 
-module_type [@recovery default_module_type ()]:
+module_type [@recovery default_module_type _startpos]:
   | SIG attrs = attributes s = signature END
       { mkmty ~loc:$sloc ~attrs (Pmty_signature s) }
   (*
@@ -2519,7 +2522,7 @@ label_let_pattern:
     mkrhs(LIDENT)
       { ($1.Location.txt, mkpat ~loc:$sloc (Ppat_var $1)) }
 ;
-let_pattern [@recovery default_pattern ()]:
+let_pattern [@recovery default_pattern _startpos]:
     pattern
       { $1 }
   | mkpat(pattern COLON possibly_poly_type
@@ -2555,7 +2558,7 @@ let_pattern [@recovery default_pattern ()]:
 
 %inline qualified_dotop: ioption(DOT mod_longident {$2}) DOTOP { $1, $2 };
 
-%public fun_expr [@recovery default_expr ()]:
+%public fun_expr [@recovery default_expr _startpos]:
     simple_expr %prec below_HASH
       { $1 }
   | fun_expr_attrs
@@ -3167,7 +3170,7 @@ type_constraint:
    [pattern_no_exn], we create a parameterized definition [pattern_(self)]
    and instantiate it twice. *)
 
-pattern [@recovery default_pattern ()]:
+pattern [@recovery default_pattern _startpos]:
     pattern_(pattern)
       { $1 }
   | EXCEPTION ext_attributes pattern %prec prec_constr_appl

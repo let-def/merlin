@@ -95,23 +95,27 @@ let print_token () =
   printf "let print_token = function\n";
   Terminal.iter case
 
-let print_token_of_terminal () =
-  let case t =
+(** The symbols by number, the terminals first, as in the tables of LRgrep *)
+
+let print_symbol_of_index () =
+  let case_t t =
     match Terminal.kind t with
-    | `REGULAR | `EOF ->
-      printf "  | %s.T_%s -> %s%s\n"
-        menhir (Terminal.name t)
-        (Terminal.name t) (if Terminal.typ t <> None then " v" else "")
-    | `ERROR ->
-      printf "  | %s.T_%s -> assert false\n"
-        menhir (Terminal.name t)
+    | `REGULAR | `ERROR | `EOF ->
+      printf "  | %d -> Some (%s.X (%s.T %s.T_%s))\n"
+        (Terminal.to_int t) menhir menhir menhir (Terminal.name t)
     | `PSEUDO -> ()
+  and case_n n =
+    match Nonterminal.kind n with
+    | `REGULAR ->
+      printf "  | %d -> Some (%s.X (%s.N %s.N_%s))\n"
+        (Terminal.count + Nonterminal.to_int n) menhir menhir menhir
+        (Nonterminal.mangled_name n)
+    | `START -> ()
   in
-  printf
-    "let token_of_terminal (type a) (t : a %s.terminal) (v : a) : token =\n\
-    \  match t with\n"
-    menhir;
-  Terminal.iter case
+  printf "let symbol_of_index = function\n";
+  Terminal.iter case_t;
+  Nonterminal.iter case_n;
+  printf "  | _ -> None\n"
 
 let () =
   print_header ();
@@ -122,4 +126,4 @@ let () =
   print_newline ();
   print_token ();
   print_newline ();
-  print_token_of_terminal ()
+  print_symbol_of_index ()

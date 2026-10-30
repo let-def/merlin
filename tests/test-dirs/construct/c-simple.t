@@ -155,20 +155,20 @@ Test 1.3
 Test lazy
 
   $ cat >lazy.ml <<EOF
-  > let x : int lazy = _
+  > let x : int Lazy.t = _
   > EOF
 
-  $ $MERLIN single construct -position 1:20 \
+  $ $MERLIN single construct -position 1:21 \
   > -filename lazy.ml <lazy.ml | jq ".value"
   [
     {
       "start": {
         "line": 1,
-        "col": 19
+        "col": 21
       },
       "end": {
         "line": 1,
-        "col": 20
+        "col": 22
       }
     },
     [

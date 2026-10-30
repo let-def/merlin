@@ -889,7 +889,7 @@ let merloc startpos ?endpos x =
 %token LESSMINUS [@symbol "<-"] [@cost 2]
 %token LET [@symbol "let"]
 %token <string> LIDENT [@cost 2] [@recovery "_"][@printer Printf.sprintf "LIDENT(%S)"]
-%token LPAREN [@symbol ")"]
+%token LPAREN [@symbol "("]
 %token LBRACKETAT [@symbol "[@"]
 %token LBRACKETATAT [@symbol "[@@"]
 %token LBRACKETATATAT [@symbol "[@@@"]

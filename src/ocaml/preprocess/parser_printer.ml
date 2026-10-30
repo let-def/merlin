@@ -69,7 +69,7 @@ let print_symbol = function
   | MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_METAOCAML_BRACKET_OPEN) -> ".<"
   | MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_METAOCAML_BRACKET_CLOSE) -> ">."
   | MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_MATCH) -> "match"
-  | MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_LPAREN) -> ")"
+  | MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_LPAREN) -> "("
   | MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_LIDENT) -> "LIDENT"
   | MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_LETOP) -> "LETOP"
   | MenhirInterpreter.X (MenhirInterpreter.T MenhirInterpreter.T_LET) -> "let"
@@ -423,7 +423,7 @@ let print_value (type a) : a MenhirInterpreter.symbol -> a -> string = function
   | MenhirInterpreter.T MenhirInterpreter.T_METAOCAML_BRACKET_OPEN -> (fun _ -> ".<")
   | MenhirInterpreter.T MenhirInterpreter.T_METAOCAML_BRACKET_CLOSE -> (fun _ -> ">.")
   | MenhirInterpreter.T MenhirInterpreter.T_MATCH -> (fun _ -> "match")
-  | MenhirInterpreter.T MenhirInterpreter.T_LPAREN -> (fun _ -> ")")
+  | MenhirInterpreter.T MenhirInterpreter.T_LPAREN -> (fun _ -> "(")
   | MenhirInterpreter.T MenhirInterpreter.T_LIDENT -> (Printf.sprintf "LIDENT(%S)")
   | MenhirInterpreter.T MenhirInterpreter.T_LETOP -> (fun _ -> "LETOP")
   | MenhirInterpreter.T MenhirInterpreter.T_LET -> (fun _ -> "let")

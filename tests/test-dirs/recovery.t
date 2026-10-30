@@ -37,7 +37,7 @@ The hole is filled with merlin.hole.
         "type": "parser",
         "sub": [],
         "valid": true,
-        "message": "Syntax error, expecting fun_expr"
+        "message": "Expected an expression after `=`"
       }
     ],
     "notifications": []
@@ -82,7 +82,7 @@ The hole is filled with merlin.hole.
         "type": "parser",
         "sub": [],
         "valid": true,
-        "message": "Syntax error, expecting module_expr"
+        "message": "Expected a module expression after `=`"
       }
     ],
     "notifications": []
@@ -118,7 +118,7 @@ penalty should prevent it.
         "type": "parser",
         "sub": [],
         "valid": true,
-        "message": "Syntax error, expecting fun_expr"
+        "message": "Expected an expression (or `.`) after `->`"
       }
     ],
     "notifications": []

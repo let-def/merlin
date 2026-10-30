@@ -21,6 +21,6 @@ The file is not empty: it has a comment and an operator
       "type": "parser",
       "sub": [],
       "valid": true,
-      "message": "Syntax error, expecting structure"
+      "message": "Expected a structure item or end of file"
     }
   ]

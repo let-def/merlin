@@ -33,7 +33,7 @@ should reach top-level
         "type": "parser",
         "sub": [],
         "valid": true,
-        "message": "Syntax error"
+        "message": "Expected a structure item or end of file"
       }
     ],
     "notifications": []
@@ -148,7 +148,7 @@ should reach top-level
         "type": "parser",
         "sub": [],
         "valid": true,
-        "message": "Syntax error"
+        "message": "`let` definitions are not allowed in a signature; declare values with `val name : type`"
       }
     ],
     "notifications": []

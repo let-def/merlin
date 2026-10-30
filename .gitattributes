@@ -14,3 +14,4 @@ src/ocaml/preprocess/parser_raw.ml text eol=lf
 src/ocaml/preprocess/parser_raw.mli text eol=lf
 # Generated tables, with raw bytes in their strings: never converted
 src/ocaml/preprocess/parser_recovery.ml -text
+src/ocaml/preprocess/parse_errors.ml -text

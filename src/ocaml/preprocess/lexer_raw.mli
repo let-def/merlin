@@ -58,6 +58,9 @@ type state = {
 
 val make: ?preprocessor:preprocessor -> keywords -> state
 
+(* The text of a keyword of OCaml *)
+val as_keyword : Parser_raw.token -> string option
+
 (* The lexical analyzer *)
 
 val skip_sharp_bang: state -> Lexing.lexbuf -> Parser_raw.token result

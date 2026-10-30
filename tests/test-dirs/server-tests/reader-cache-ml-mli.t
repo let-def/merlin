@@ -23,15 +23,15 @@ A valid implementation, which is a syntax error as an interface.
 
 The interface should have a syntax error.
   $ errors same.mli
-  1:0 Syntax error
+  1:0 `let` definitions are not allowed in a signature; declare values with `val name : type`
 
 Any change to the text misses the cache.
   $ echo '' >> same.mli
   $ errors same.mli
-  1:0 Syntax error
+  1:0 `let` definitions are not allowed in a signature; declare values with `val name : type`
 
 For reference, single mode:
   $ cp same.ml same.mli
   $ ocamlmerlin single errors -filename same.mli < same.mli | jq -r '.value[].message'
-  Syntax error
+  `let` definitions are not allowed in a signature; declare values with `val name : type`
   $ $MERLIN server stop-server

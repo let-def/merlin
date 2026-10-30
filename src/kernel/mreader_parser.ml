@@ -62,9 +62,20 @@ let shifted env =
 
 let errors_ref = ref []
 
-let on_error env token =
-  let explanation = Mreader_explain.explain env token (shifted env) in
-  errors_ref := Mreader_explain.Syntax_explanation explanation :: !errors_ref
+(* The message of the specification of the syntax errors
+   (parse_errors.lrgrep), and a generic explanation when it has none *)
+let on_error env ((_, loc_start, loc_end) as token) =
+  let error =
+    match Parse_errors.error_messages env token with
+    | Some (msg, sub) ->
+      let loc = { Location.loc_start; loc_end; loc_ghost = false } in
+      let sub = List.map (fun (loc, msg) -> Location.msg ~loc "%s" msg) sub in
+      Location.Error (Location.error ~loc ~sub ~source:Location.Parser msg)
+    | None | (exception _) ->
+      Mreader_explain.Syntax_explanation
+        (Mreader_explain.explain env token (shifted env))
+  in
+  errors_ref := error :: !errors_ref
 
 (* A semantic action rejected the input *)
 let on_exception _env _token exn = Msupport.raise_error exn

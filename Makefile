@@ -27,3 +27,11 @@ bench:
 
 .PHONY: all build dev clean test promote bench bench
 .NOTPARALLEL:
+
+# The coverage of the syntax errors by the messages of parse_errors.lrgrep
+lrgrep-coverage:
+	lrgrep compile \
+		-g ./_build/default/src/ocaml/preprocess/parser_raw.cmly \
+		-s src/ocaml/preprocess/parse_errors.lrgrep \
+		-o /dev/null \
+		--cover-all --cover-report coverage.md

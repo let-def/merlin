@@ -19,7 +19,7 @@ error.
   [
     {
       "type": "parser",
-      "message": "Syntax error"
+      "message": "`let` definitions are not allowed in a signature; declare values with `val name : type`"
     }
   ]
 
@@ -38,7 +38,7 @@ Switching to the interface does not reuse the implementation's parse result.
   [
     {
       "type": "parser",
-      "message": "Syntax error"
+      "message": "`let` definitions are not allowed in a signature; declare values with `val name : type`"
     }
   ]
   $ grep 'Phase cache' -A 1 merlin_logs | sed 's/[0-9]*//g'
@@ -56,7 +56,7 @@ syntax error is reported correctly on a cold cache.
   [
     {
       "type": "parser",
-      "message": "Syntax error"
+      "message": "`let` definitions are not allowed in a signature; declare values with `val name : type`"
     }
   ]
 

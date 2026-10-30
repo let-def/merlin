@@ -45,18 +45,9 @@ let own_segments s =
   in
   take [] [] (C.segments s)
 
-(* How the description of a suggestion differs from its continuation:
-   the values of the annotations, of the rule of its first segment and of
-   the segments of its construct *)
-let description s segs =
-  let rule =
-    match C.segments s with
-    | seg :: _ -> C.symbol_value (C.segment_rule seg)
-    | [] -> None
-  in
-  match rule with
-  | Some _ -> rule
-  | None -> List.find_map C.segment_value segs
+(* The description of a suggestion given by the annotations, the value of
+   the first segment of its construct that has one *)
+let description segs = List.find_map C.description segs
 
 (* The continuation of a group of suggestions, cut after the symbols [own]
    of the construct of one of them; the optional pieces that come from the
@@ -137,14 +128,14 @@ let keywords (Mreader_parser.Snapshot (env, suffix)) =
             let own = own_segments s and distance = C.distance suffix s in
             Hashtbl.replace group keyword
               (match Hashtbl.find_opt group keyword with
-              | Some (d, own', s') ->
+              | Some (d, own') ->
                 if List.length (snd own') >= List.length (snd own) then
-                  (min d distance, own', s')
-                else (min d distance, own, s)
-              | None -> (distance, own, s)))
+                  (min d distance, own')
+                else (min d distance, own)
+              | None -> (distance, own)))
         suggestions;
       Hashtbl.iter
-        (fun keyword (distance, (segs, own), s) ->
+        (fun keyword (distance, (segs, own)) ->
           let key = (distance, List.length own) in
           match Hashtbl.find_opt best keyword with
           | Some (key', _) when key' <= key -> ()
@@ -154,18 +145,14 @@ let keywords (Mreader_parser.Snapshot (env, suffix)) =
                tokens *)
             let pieces = cut own pieces in
             let desc =
-              match description s segs with
-              | Some C.Alone -> keyword
-              | (Some (C.Enclosed _) | None) as description -> (
-                let pieces =
-                  enclosed
-                    (Option.value ~default:pieces
-                       (from_keyword keyword (List.hd own) pieces))
-                in
-                match description with
-                | Some (C.Enclosed (opening, closing)) ->
-                  opening ^ print pieces ^ closing
-                | Some C.Alone | None -> print pieces)
+              match description segs with
+              | Some (C.Construct desc) -> desc
+              | Some C.Operator -> "(" ^ keyword ^ ")"
+              | None ->
+                print
+                  (enclosed
+                     (Option.value ~default:pieces
+                        (from_keyword keyword (List.hd own) pieces)))
             in
             Hashtbl.replace best keyword (key, desc))
         group)

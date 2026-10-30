@@ -5815,27 +5815,20 @@ end
 include Lrgrep_completion.Make (Parser) (Tables)
 # 7 "parser_completion.annotations"
   
-(* How the description of a keyword differs from its continuation *)
+(* The description of a segment, for the completion of the keyword it
+   starts *)
 type description =
-  | Alone
-      (** The keyword alone: [true] and [false] are constructors, what
-          follows them is the construct they appear in *)
-  | Enclosed of string * string
-      (** The construct of the keyword is between delimiters, the opening one
-          before the keyword: [(module <module>)], [(mod)] *)
+  | Construct of string
+      (** The construct of the keyword, as shown in the editor *)
+  | Operator
+      (** The closing parenthesis of an operator used as a value: the keyword
+          is shown between parentheses, [(mod)] *)
 # 5827 "./parser_completion.ml"
 
 
-let symbol_value : symbol -> _ option = function
-  | N_constr_extra_nonprefix_ident -> Some (
-# 232 "parser_completion.annotations"
-                               Alone 
-# 5834 "./parser_completion.ml"
+let symbol_value : symbol -> _ option = fun _ -> None
 
-  )
-  | _ -> None
-
-let segment_value : segment -> _ option = function
+let description : segment -> _ option = function
   | S___anonymous_0_2_2
   | S___anonymous_11_0_4
   | S___anonymous_26_0_1
@@ -5883,36 +5876,59 @@ let segment_value : segment -> _ option = function
   | S_simple_pattern_not_ident__10_4
   | S_type_parameters_2_2
   | S_val_extra_ident_0_2 -> Some (
-# 237 "parser_completion.annotations"
-           Enclosed ("(", ")") 
-# 5889 "./parser_completion.ml"
+# 242 "parser_completion.annotations"
+               Operator 
+# 5882 "./parser_completion.ml"
 
   )
   | S___anonymous_29_1_2
   | S_fun_param_as_list_0_1 -> Some (
-# 236 "parser_completion.annotations"
-                               Enclosed ("(", ")") 
-# 5896 "./parser_completion.ml"
+# 241 "parser_completion.annotations"
+                                   Construct "(type <ident> ...)" 
+# 5889 "./parser_completion.ml"
 
   )
-  | S_delimited_type_supporting_local_open_1_1
-  | S_simple_expr__25_3
-  | S_simple_expr_attrs_3_1
-  | S_simple_expr_attrs_4_1
-  | S_simple_pattern_not_ident_2_1
-  | S_simple_pattern_not_ident_3_1 -> Some (
+  | S_constr_extra_nonprefix_ident_2_0
+  | S_single_attr_id_16_0
+  | S_toplevel_directive_argument_4_0 -> Some (
+# 233 "parser_completion.annotations"
+              Construct "false" 
+# 5897 "./parser_completion.ml"
+
+  )
+  | S_constr_extra_nonprefix_ident_3_0
+  | S_single_attr_id_44_0
+  | S_toplevel_directive_argument_5_0 -> Some (
 # 234 "parser_completion.annotations"
-                     Enclosed ("(", ")") 
-# 5907 "./parser_completion.ml"
+             Construct "true" 
+# 5905 "./parser_completion.ml"
+
+  )
+  | S_delimited_type_supporting_local_open_1_1 -> Some (
+# 239 "parser_completion.annotations"
+                                                   Construct "(module <module type>)" 
+# 5911 "./parser_completion.ml"
 
   )
   | S_paren_module_expr_2_1 -> Some (
-# 235 "parser_completion.annotations"
-                  Enclosed ("(", ")") 
-# 5913 "./parser_completion.ml"
+# 240 "parser_completion.annotations"
+                                                      Construct "(val <expr> : <module type>)" 
+# 5917 "./parser_completion.ml"
+
+  )
+  | S_simple_expr__25_3
+  | S_simple_expr_attrs_3_1
+  | S_simple_expr_attrs_4_1 -> Some (
+# 236 "parser_completion.annotations"
+        Construct "(module <module> [: <module type>])" 
+# 5925 "./parser_completion.ml"
+
+  )
+  | S_simple_pattern_not_ident_2_1
+  | S_simple_pattern_not_ident_3_1 -> Some (
+# 238 "parser_completion.annotations"
+        Construct "(module <Module> [: <module type>])" 
+# 5932 "./parser_completion.ml"
 
   )
   | _ -> None
-
-(* The values of the symbols and of the segments have the same type *)
-let _ = fun s g -> [symbol_value s; segment_value g]

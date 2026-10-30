@@ -1,18 +1,18 @@
 # Annotations of the grammar for the syntactic completion (lrgrep
 # completion -a): `symbol: directives`, with `omit` (leave out of the
 # suggestions) or "text" (how to print it), and the values that direct the
-# descriptions of the keywords in Mreader_complete: `symbol { value }` and
-# `. producers { value }` for the segments (the rests of the branches).
+# descriptions of the keywords in Mreader_complete, by the rule
+# `description` of the segments (the rests of the branches).
 
 %{
-(* How the description of a keyword differs from its continuation *)
+(* The description of a segment, for the completion of the keyword it
+   starts *)
 type description =
-  | Alone
-      (** The keyword alone: [true] and [false] are constructors, what
-          follows them is the construct they appear in *)
-  | Enclosed of string * string
-      (** The construct of the keyword is between delimiters, the opening one
-          before the keyword: [(module <module>)], [(mod)] *)
+  | Construct of string
+      (** The construct of the keyword, as shown in the editor *)
+  | Operator
+      (** The closing parenthesis of an operator used as a value: the keyword
+          is shown between parentheses, [(mod)] *)
 %}
 
 # Attributes and extension points are optional, they are not suggested.
@@ -228,10 +228,15 @@ METAOCAML_ESCAPE: "'.~'"
 METAOCAML_BRACKET_OPEN: "'.<'"
 METAOCAML_BRACKET_CLOSE: "'>.'"
 
-# The descriptions of the keywords
-constr_extra_nonprefix_ident { Alone }
-# The segments that close a parenthesis opened before them
-. MODULE _* RPAREN { Enclosed ("(", ")") }
-. VAL _* RPAREN { Enclosed ("(", ")") }
-. TYPE lident_list RPAREN _* { Enclosed ("(", ")") }
-. RPAREN { Enclosed ("(", ")") }
+# The descriptions of the keywords that the continuations do not give
+rule description = parse
+  | . FALSE { Construct "false" }
+  | . TRUE { Construct "true" }
+  | . MODULE ext_attributes module_expr _* RPAREN
+      { Construct "(module <module> [: <module type>])" }
+  | . MODULE ext_attributes mkrhs(module_name) _* RPAREN
+      { Construct "(module <Module> [: <module type>])" }
+  | . MODULE ext_attributes package_type_ RPAREN { Construct "(module <module type>)" }
+  | . VAL attributes expr_colon_package_type RPAREN { Construct "(val <expr> : <module type>)" }
+  | . TYPE lident_list RPAREN _* { Construct "(type <ident> ...)" }
+  | . RPAREN { Operator }

@@ -123,14 +123,17 @@ let parse ?cursor entry tokens initial_pos =
   let guide = R.frames () in
   let cursor = Option.map (cursor_index tokens) cursor in
   let snapshot = ref None in
-  let record env i =
+  let record get_env i =
     match cursor with
-    | Some c when i = c && Option.is_none !snapshot ->
-      let suffix =
-        Array.to_list (Array.sub tokens (i + 1) (max 0 (min 20 (n - i - 1))))
-      in
-      snapshot :=
-        Some (Snapshot (env, List.map (fun (tok, _, _) -> tok) suffix))
+    | Some c when i = c && Option.is_none !snapshot -> (
+      match get_env () with
+      | None -> ()
+      | Some env ->
+        let suffix =
+          Array.to_list (Array.sub tokens (i + 1) (max 0 (min 20 (n - i - 1))))
+        in
+        snapshot :=
+          Some (Snapshot (env, List.map (fun (tok, _, _) -> tok) suffix)))
     | _ -> ()
   in
   let last_error = ref (-1) and last_repair = ref (-1) in
@@ -145,7 +148,7 @@ let parse ?cursor entry tokens initial_pos =
     !lo
   in
   let rec normal env i =
-    record env i;
+    record (fun () -> Some env) i;
     if i >= n then recover env i
     else
       match run (I.offer (I.input_needed env) tokens.(i)) with
@@ -184,8 +187,8 @@ let parse ?cursor entry tokens initial_pos =
     let r = R.recover (guide.R.start env) env in
     let rec loop j =
       (* The cursor is in the tokens of the recovery: the stack before it is
-         the one of the recovery *)
-      record env j;
+         the one the recovery chooses for the tokens before it *)
+      record (fun () -> R.choose r) j;
       if j >= n then R.finish r
       else
         match R.feed r tokens.(j) with

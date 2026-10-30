@@ -1335,6 +1335,20 @@ module Make (P : PARSER) (T : TABLES with type 'a env := 'a P.MenhirInterpreter.
       | `Resume env -> r.r_log "resuming"; `Resume env
       | `Accept v -> `Accept v
 
+  let choose r =
+    (* A copy: the candidates are shared, the choice is not kept *)
+    let r = {r with pending = r.pending} in
+    let rec loop () =
+      match r.pending with
+      | [] -> Some r.base
+      | window ->
+        match decide r window with
+        | `Skip -> r.pending <- List.tl window; loop ()
+        | `Accept _ -> None
+        | `Resume env -> Some env
+    in
+    loop ()
+
   let rec finish r =
     match r.pending with
     | [] -> r.final ()

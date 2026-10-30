@@ -321,6 +321,12 @@ module Make (P : PARSER) (T : TABLES with type 'a env := 'a P.MenhirInterpreter.
       choosing a candidate for the tokens fed but not yet consumed. *)
   val finish : 'a recovery -> 'a option
 
+  (** The parser after choosing a candidate for the tokens fed, as if the
+      input ended after them, without completing it: the stack at a cursor
+      inside the tokens of a recovery, for a completion. The recovery is
+      not changed. [None] if the candidate accepts. *)
+  val choose : 'a recovery -> 'a P.MenhirInterpreter.env option
+
   (** {2 Parsing with recovery} *)
 
   (** Parse from the checkpoint [entry], recovering from the errors with a

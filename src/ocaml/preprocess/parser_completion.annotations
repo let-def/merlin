@@ -165,7 +165,7 @@ LBRACKETPERCENTPERCENT: "'[%%'"
 LESS: "'<'"
 LESSMINUS: "'<-'"
 LET: "'let'"
-LPAREN: "'('"  # [@symbol ")"] in the grammar
+LPAREN: "'('"
 LBRACKETAT: "'[@'"
 LBRACKETATAT: "'[@@'"
 LBRACKETATATAT: "'[@@@'"
